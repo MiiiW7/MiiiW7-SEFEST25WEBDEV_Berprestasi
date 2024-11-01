@@ -29,35 +29,34 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
+  
     // Validasi form
     if (!formData.email || !formData.password) {
       setError("Email dan password harus diisi");
       return;
     }
-
+  
     if (!isValidEmail(formData.email)) {
       setError("Format email tidak valid");
       return;
     }
-
+  
     if (formData.password.length < 6) {
       setError("Password minimal 6 karakter");
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
-      await login(formData);
+      const userData = await login(formData);
+      console.log("Login berhasil:", userData);
       navigate("/");
     } catch (error) {
       console.log("Error detail:", error);
       
-      // Handling error berdasarkan response dari server
       if (axios.isAxiosError(error)) {
         if (error.response) {
-          // Server memberikan response dengan status error
           switch (error.response.status) {
             case 401:
               setError("Email atau password salah");
@@ -75,18 +74,13 @@ const Login = () => {
               setError("Terjadi kesalahan. Silakan coba lagi");
           }
         } else if (error.request) {
-          // Request dibuat tapi tidak ada response
           setError("Tidak dapat terhubung ke server");
         } else {
-          // Error pada setup request
           setError("Terjadi kesalahan. Silakan coba lagi");
         }
       } else {
-        // Error bukan dari axios
-        setError("Terjadi kesalahan. Silakan coba lagi");
+        setError(error.message || "Terjadi kesalahan. Silakan coba lagi");
       }
-      
-      console.error("Full error:", error);
     } finally {
       setLoading(false);
     }

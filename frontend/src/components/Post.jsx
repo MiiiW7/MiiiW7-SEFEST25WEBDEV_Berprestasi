@@ -10,6 +10,13 @@ const Post = ({ id, title, description, image, category, creatorName }) => {
     setImageError(true);
   };
 
+  console.log("Post ID:", id);
+
+  if (!id) {
+    console.warn("Post ID is undefined");
+    return null; // atau tampilkan fallback UI
+  }
+
   return (
     <Link to={`/post/${id}`} className="block">
       <div className="p-4 m-4 w-80 bg-white shadow-md rounded-xl transition-transform hover:scale-105">

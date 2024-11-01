@@ -13,13 +13,13 @@ const Postlist = () => {
     setIsLoading(true);
     axios.get(`${BACKEND_URL}/post`)
       .then(result => {
-        console.log('API Response:', result.data);
+        console.log('Full API Response:', result);
         const responsesAPI = result.data;
         setDataPost(responsesAPI.data || []);
         setIsLoading(false);
       })
       .catch(err => {
-        console.log('Error:', err);
+        console.error('Error details:', err.response?.data);
         setError(err.message);
         setIsLoading(false);
       });
@@ -41,7 +41,7 @@ const Postlist = () => {
       {dataPost.map((post) => (
         <Post 
           key={post._id}
-          id={post._id}
+          id={post.id}
           title={post.title}
           description={post.description}
           image={getImageUrl(post.image)}

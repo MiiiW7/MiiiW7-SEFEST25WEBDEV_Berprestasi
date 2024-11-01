@@ -25,6 +25,7 @@ const CreatePost = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,22 +53,25 @@ const CreatePost = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setIsLoading(true);
+    setError("");
+
     if (!user || !token) {
-      console.error("No user or token available");
       setError("User tidak terautentikasi. Silakan login kembali.");
+      setIsLoading(false);
       return;
     }
-  
+
     try {
       const formDataToSend = new FormData();
-      
       formDataToSend.append("title", formData.title);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("category", formData.category);
       formDataToSend.append("status", formData.status);
-      formDataToSend.append("image", formData.image);
-  
+      if (formData.image) {
+        formDataToSend.append("image", formData.image);
+      }
+
       const response = await axios.post(
         "http://localhost:9000/post",
         formDataToSend,
@@ -78,18 +82,14 @@ const CreatePost = () => {
           },
         }
       );
-  
-      console.log("Response:", response.data);
+
+      console.log("Post created:", response.data);
       navigate("/");
-      
     } catch (error) {
-      console.error("Full error object:", error);
-      if (error.response) {
-        console.error("Error response data:", error.response.data);
-        setError(error.response.data.message || "Terjadi kesalahan saat membuat post.");
-      } else {
-        setError("Terjadi kesalahan saat menghubungi server.");
-      }
+      console.error("Error creating post:", error);
+      setError(error.response?.data?.message || "Terjadi kesalahan saat membuat post.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

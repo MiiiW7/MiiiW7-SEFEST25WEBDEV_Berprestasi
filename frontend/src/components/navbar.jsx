@@ -63,6 +63,12 @@ const Navbar = () => {
               >
                 Profile
               </Link>
+              <button
+                onClick={logout}
+                className="hidden md:inline-block bg-red-500 text-white px-5 py-2 rounded-full hover:bg-red-600"
+              >
+                Logout
+              </button>
             </>
           ) : (
             <>
@@ -111,8 +117,18 @@ const Navbar = () => {
             </Link>
             {user && (
               <>
-                
-                
+                {user.role === "penyelenggara" && (
+                  <Link to="/create-post" className="w-80">
+                    <button className="bg-yellow-300 w-full py-2 rounded-full ">
+                      Buat Lomba
+                    </button>
+                  </Link>
+                )}
+                <Link to="/profile" className="w-80">
+                  <button className="bg-yellow-300 w-full py-2 rounded-full">
+                    Profile
+                  </button>
+                </Link>
                 <button
                   onClick={logout}
                   className="bg-red-500 text-white w-80 py-2 rounded-full"

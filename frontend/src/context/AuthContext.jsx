@@ -98,21 +98,22 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
-
-      const { token: newToken, data } = response.data;
-
-      if (!newToken || !data) {
+  
+      const { token, data } = response.data;
+  
+      if (!token || !data) {
         throw new Error("Invalid response from server");
       }
-
-      localStorage.setItem("token", newToken);
-      setToken(newToken);
+  
+      localStorage.setItem("token", token);
+      setToken(token);
       setUser(data);
       setError(null);
       return data;
     } catch (error) {
       console.error("Login error:", error.response || error);
-      setError(error.response?.data?.message || "Login failed");
+      const errorMessage = error.response?.data?.message || "Login failed";
+      setError(errorMessage);
       throw error;
     } finally {
       setLoading(false);

@@ -25,81 +25,71 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
+  
     //Validasi form
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.password ||
-      !formData.nomor
-    ) {
+    if (!formData.name || !formData.email || !formData.password || !formData.nomor) {
       setError("Semua field harus diisi");
       return;
     }
-
+  
     // Validasi password length
     if (formData.password.length < 6) {
       setError("Password minimal 6 karakter");
       return;
     }
-
+  
     // Validasi password match
     if (formData.password !== formData.confirmPassword) {
       setError("Password tidak cocok");
       return;
     }
-
+  
     // Validasi format email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError("Format email tidak valid");
       return;
     }
-
-    setLoading(true);
-
-    try {
-        const response = await axios.post(
-          "http://localhost:9000/user/auth/register",
-          {
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-            nomor: formData.nomor,
-            role: formData.role
-          }
-        );
   
-        if (response.data.success) {
-          alert("Registrasi berhasil!");
-          navigate("/login");
-        }
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          if (error.response) {
-            switch (error.response.status) {
-              case 400:
-                setError(error.response.data.message || "Email sudah terdaftar");
-                break;
-              case 422:
-                setError(error.response.data.message || "Data tidak valid");
-                break;
-              case 500:
-                setError("Terjadi kesalahan pada server");
-                break;
-              default:
-                setError("Terjadi kesalahan saat registrasi");
-            }
-          } else if (error.request) {
-            setError("Tidak dapat terhubung ke server");
+    setLoading(true);
+  
+    try {
+      const response = await axios.post(
+        "http://localhost:9000/user/auth/register",
+        {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          nomor: formData.nomor,
+          role: formData.role
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
           }
-        } else {
-          setError("Terjadi kesalahan yang tidak diketahui");
         }
-      } finally {
-        setLoading(false);
+      );
+  
+      if (response.data.success) {
+        console.log("Registration successful:", response.data);
+        alert("Registrasi berhasil!");
+        navigate("/login");
       }
-    };
+    } catch (error) {
+      console.error("Registration error:", error);
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          setError(error.response.data.message || "Terjadi kesalahan saat registrasi");
+        } else if (error.request) {
+          setError("Tidak dapat terhubung ke server");
+        }
+      } else {
+        setError("Terjadi kesalahan yang tidak diketahui");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

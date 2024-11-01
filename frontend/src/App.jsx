@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import DetailPost from "./pages/DetailPost";
-import Register from "./pages/register";
+import Register from "./pages/Register";
 import CreatePost from "./pages/CreatePost"; // Tambahkan import ini
 
 const App = () => {
