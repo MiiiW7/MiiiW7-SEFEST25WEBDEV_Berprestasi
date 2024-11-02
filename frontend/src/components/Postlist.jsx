@@ -45,7 +45,7 @@ const Postlist = () => {
           title={post.title}
           description={post.description}
           image={getImageUrl(post.image)}
-          category={post.category}
+          category={post.categories}
           creatorName={post.creator?.name || 'Unknown'}
         />
       ))}

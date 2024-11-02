@@ -10,45 +10,46 @@ const ProfilePenyelenggara = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const BACKEND_URL = 'http://localhost:9000';
+  const BACKEND_URL = "http://localhost:9000";
 
   const fetchUserPosts = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await axios.get(`${BACKEND_URL}/post/user/${user.id}`, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (response.data.success) {
         setPosts(response.data.data);
+        console.log(response.data.data);
       } else {
-        setError(response.data.message || 'Failed to fetch posts');
+        setError(response.data.message || "Failed to fetch posts");
       }
     } catch (error) {
-      console.error('Error details:', error.response?.data || error.message);
-      setError(error.response?.data?.message || 'Failed to fetch posts');
+      console.error("Error details:", error.response?.data || error.message);
+      setError(error.response?.data?.message || "Failed to fetch posts");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user && user.role === 'penyelenggara') {
+    if (user && user.role === "penyelenggara") {
       fetchUserPosts();
     }
   }, [user]);
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
+    if (!imagePath) return "";
+    if (imagePath.startsWith("http")) return imagePath;
     return `${BACKEND_URL}${imagePath}`;
   };
 
-  if (user.role !== 'penyelenggara') {
+  if (user.role !== "penyelenggara") {
     return <div>Anda tidak memiliki akses ke halaman ini.</div>;
   }
 
@@ -78,9 +79,11 @@ const ProfilePenyelenggara = () => {
         {/* Posts Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">Daftar Lomba Yang Diselenggarakan</h2>
+            <h2 className="text-xl font-bold">
+              Daftar Lomba Yang Diselenggarakan
+            </h2>
             <button
-              onClick={() => window.location.href='/create-post'}
+              onClick={() => (window.location.href = "/create-post")}
               className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600"
             >
               Tambah Lomba
@@ -107,7 +110,10 @@ const ProfilePenyelenggara = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.map((post) => (
-              <div key={post.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div
+                key={post.id}
+                className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              >
                 <img
                   src={getImageUrl(post.image)}
                   alt={post.title}
@@ -120,17 +126,30 @@ const ProfilePenyelenggara = () => {
                       ? `${post.description.substring(0, 100)}...`
                       : post.description}
                   </p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
-                      {post.category}
-                    </span>
+                  <div className="flex items-center mt-4">
+                  {Array.isArray(post.categories)
+                  ? post.categories.map((category, index) => (
+                      <span
+                        key={index}
+                        className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
+                      >
+                        {category}
+                      </span>
+                    ))
+                  : post.category && (
+                      <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
+                        {post.category}
+                      </span>
+                    )}
                     <span className="text-sm text-gray-500">
                       Status: {post.status}
                     </span>
                   </div>
                   <div className="mt-4 flex justify-end gap-2">
                     <button
-                      onClick={() => window.location.href = `/edit-post/${post.id}`}
+                      onClick={() =>
+                        (window.location.href = `/edit-post/${post.id}`)
+                      }
                       className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
                     >
                       Edit
@@ -138,7 +157,11 @@ const ProfilePenyelenggara = () => {
                     <button
                       onClick={() => {
                         // Implement delete functionality
-                        if (window.confirm('Apakah Anda yakin ingin menghapus lomba ini?')) {
+                        if (
+                          window.confirm(
+                            "Apakah Anda yakin ingin menghapus lomba ini?"
+                          )
+                        ) {
                           // Add delete logic here
                         }
                       }}

@@ -8,10 +8,21 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const { user, token } = useAuth(); // Mengambil user dan token dari context
 
+  const AVAILABLE_CATEGORIES = [
+    "Akademik",
+    "Non-Akademik",
+    "Seni",
+    "Olahraga",
+    "Teknologi",
+    "Bahasa",
+    "Sains",
+    "Matematika",
+  ];
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: "",
+    categories: [],
     image: null,
     status: "published",
   });
@@ -56,6 +67,8 @@ const CreatePost = () => {
     setIsLoading(true);
     setError("");
 
+    console.log("Categories before sending:", formData.categories);
+
     if (!user || !token) {
       setError("User tidak terautentikasi. Silakan login kembali.");
       setIsLoading(false);
@@ -66,7 +79,7 @@ const CreatePost = () => {
       const formDataToSend = new FormData();
       formDataToSend.append("title", formData.title);
       formDataToSend.append("description", formData.description);
-      formDataToSend.append("category", formData.category);
+      formDataToSend.append("categories", JSON.stringify(formData.categories));
       formDataToSend.append("status", formData.status);
       if (formData.image) {
         formDataToSend.append("image", formData.image);
@@ -87,10 +100,31 @@ const CreatePost = () => {
       navigate("/");
     } catch (error) {
       console.error("Error creating post:", error);
-      setError(error.response?.data?.message || "Terjadi kesalahan saat membuat post.");
+      setError(
+        error.response?.data?.message || "Terjadi kesalahan saat membuat post."
+      );
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCategoryChange = (e) => {
+    const category = e.target.value;
+    const isChecked = e.target.checked;
+
+    setFormData((prevState) => {
+      if (isChecked) {
+        return {
+          ...prevState,
+          categories: [...prevState.categories, category],
+        };
+      } else {
+        return {
+          ...prevState,
+          categories: prevState.categories.filter((c) => c !== category),
+        };
+      }
+    });
   };
 
   return (
@@ -135,16 +169,29 @@ const CreatePost = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Kategori
+              Kategori (pilih satu atau lebih)
             </label>
-            <input
-              type="text"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500"
-            />
+            <div className="space-y-2">
+              {AVAILABLE_CATEGORIES.map((category) => (
+                <div key={category} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`category-${category}`}
+                    name="categories"
+                    value={category}
+                    checked={formData.categories.includes(category)}
+                    onChange={handleCategoryChange}
+                    className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor={`category-${category}`}
+                    className="ml-2 block text-sm text-gray-900"
+                  >
+                    {category}
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div>

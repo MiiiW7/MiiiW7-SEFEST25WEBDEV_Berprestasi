@@ -10,17 +10,17 @@ const DetailPost = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const BACKEND_URL = 'http://localhost:9000';
+  const BACKEND_URL = "http://localhost:9000";
 
   useEffect(() => {
     const fetchPostDetail = async () => {
       try {
         setIsLoading(true);
         console.log("Fetching post with ID:", id);
-        
+
         const response = await Axios.get(`${BACKEND_URL}/post/${id}`);
         console.log("API Response:", response.data);
-        
+
         if (response.data.success) {
           setPost(response.data.data);
         } else {
@@ -38,8 +38,8 @@ const DetailPost = () => {
   }, [id]);
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
+    if (!imagePath) return "";
+    if (imagePath.startsWith("http")) return imagePath;
     return `${BACKEND_URL}${imagePath}`;
   };
 
@@ -59,7 +59,10 @@ const DetailPost = () => {
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <div className="container mx-auto p-4">
-          <Link to="/" className="inline-block mb-4 text-blue-500 hover:text-blue-700">
+          <Link
+            to="/"
+            className="inline-block mb-4 text-blue-500 hover:text-blue-700"
+          >
             &larr; Kembali
           </Link>
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -75,7 +78,10 @@ const DetailPost = () => {
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <div className="container mx-auto p-4">
-          <Link to="/" className="inline-block mb-4 text-blue-500 hover:text-blue-700">
+          <Link
+            to="/"
+            className="inline-block mb-4 text-blue-500 hover:text-blue-700"
+          >
             &larr; Kembali
           </Link>
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
@@ -103,19 +109,30 @@ const DetailPost = () => {
               alt={post.title}
               className="w-full h-64 object-cover"
               onError={(e) => {
-                e.target.src = '/placeholder-image.jpg'; // Ganti dengan gambar placeholder
+                e.target.src = "/placeholder-image.jpg"; // Ganti dengan gambar placeholder
                 console.log("Error loading image:", post.image);
               }}
             />
             <div className="p-6">
               <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
               <p className="text-gray-700 mb-4">{post.description}</p>
-              <div className="flex items-center justify-between">
-                <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-                  {post.category}
-                </span>
+              <div className="flex items-center gap-6">
+                {Array.isArray(post.categories)
+                  ? post.categories.map((category, index) => (
+                      <span
+                        key={index}
+                        className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
+                      >
+                        {category}
+                      </span>
+                    ))
+                  : post.category && (
+                      <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
+                        {post.category}
+                      </span>
+                    )}
                 <span className="text-sm text-gray-500">
-                  By: {post.creator?.name || 'Unknown'}
+                  By: {post.creator?.name || "Unknown"}
                 </span>
               </div>
             </div>

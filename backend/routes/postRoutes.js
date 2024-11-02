@@ -25,10 +25,12 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
       return res.status(400).json({ message: "No image uploaded" });
     }
 
+    const categories = JSON.parse(req.body.categories); // Ubah ini untuk mengurai string JSON
+
     const post = new Post({
       title: req.body.title,
       description: req.body.description,
-      category: req.body.category,
+      categories: categories,
       creator: req.user.id,
       image: `/uploads/${req.file.filename}`,
       status: req.body.status || "published",
@@ -167,7 +169,7 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
     let updateData = {
       title: req.body.title,
       description: req.body.description,
-      category: req.body.category,
+      categories: req.body.categories,
     };
 
     // Jika ada file gambar baru
