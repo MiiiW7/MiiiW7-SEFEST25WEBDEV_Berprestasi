@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import DetailPost from "./pages/DetailPost";
 import Register from "./pages/Register";
 import CreatePost from "./pages/CreatePost"; // Tambahkan import ini
+import CategoryPage from "./pages/CategoryPage";
 
 const App = () => {
   return (
@@ -32,6 +33,7 @@ const App = () => {
                       </ProtectedRoute>
                   } 
               />
+              <Route path="/kategori/:category" element={<CategoryPage/>}/>
           </Routes>
       </AuthProvider>
   );

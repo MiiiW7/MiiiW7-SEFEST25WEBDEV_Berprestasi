@@ -163,6 +163,38 @@ router.get("/user/:userId", verifyToken, async (req, res) => {
   }
 });
 
+// Berdasarkan Kategori
+router.get("/kategori/:category", async (req, res) => {
+  try {
+    const { category } = req.params;
+    const posts = await Post.find({ 
+      categories: category,
+      status: "published" 
+    }).lean();
+
+    const populatedPosts = await Promise.all(
+      posts.map(async (post) => {
+        const creator = await User.findOne({ id: post.creator }).lean();
+        return {
+          ...post,
+          creator: creator ? { id: creator.id, name: creator.name } : null,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: populatedPosts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching posts by category",
+      error: error.message,
+    });
+  }
+});
+
 // UPDATE - Memperbarui post berdasarkan ID
 router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
   try {
