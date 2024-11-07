@@ -122,7 +122,6 @@ router.get("/:id", async (req, res) => {
 
 // Endpoint baru untuk mengambil post berdasarkan ID penyelenggara
 // routes/postRoutes.js
-
 router.get("/user/:userId", verifyToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -198,40 +197,69 @@ router.get("/kategori/:category", async (req, res) => {
 // UPDATE - Memperbarui post berdasarkan ID
 router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
   try {
+    console.log("Received update request for post ID:", req.params.id);
+    console.log("Request body:", req.body);
+
+    let categories;
+    try {
+      // Parse categories dan ambil array yang unik (tidak duplikat)
+      const parsedCategories = JSON.parse(req.body.categories);
+      // Filter hanya kategori yang valid (tidak terpecah menjadi karakter)
+      categories = parsedCategories.filter(cat => 
+        ['Matematika', 'Sains', 'Bahasa', 'Seni', 'Olahraga', 'Teknologi'].includes(cat)
+      );
+    } catch (parseError) {
+      console.error("Error parsing categories:", parseError);
+      return res.status(400).json({
+        success: false,
+        message: "Format kategori tidak valid",
+        error: parseError.message
+      });
+    }
+
     let updateData = {
       title: req.body.title,
       description: req.body.description,
-      categories: req.body.categories,
+      categories: categories, // Menggunakan categories yang sudah difilter
+      status: req.body.status
     };
 
-    // Jika ada file gambar baru
-    if (req.file) {
-      updateData.image = `/uploads/${req.file.filename}`;
-    }
+    console.log("Update data:", updateData);
 
     const updatedPost = await Post.findOneAndUpdate(
       { id: req.params.id },
       updateData,
       { new: true, runValidators: true }
-    ).populate("creator", "id name");
+    );
 
     if (!updatedPost) {
       return res.status(404).json({
         success: false,
-        message: "Post tidak ditemukan",
+        message: "Post tidak ditemukan"
       });
     }
+
+    // Ambil data creator
+    const creator = await User.findOne({ id: updatedPost.creator }).lean();
+
+    // Gabungkan data post dengan data creator
+    const postWithCreator = {
+      ...updatedPost.toObject(),
+      creator: creator ? { id: creator.id, name: creator.name } : null
+    };
 
     res.status(200).json({
       success: true,
       message: "Post berhasil diperbarui",
-      data: updatedPost,
+      data: postWithCreator
     });
+
   } catch (error) {
+    console.error("Error updating post:", error);
     res.status(500).json({
       success: false,
       message: "Terjadi kesalahan saat memperbarui post",
-      error: error.message,
+      error: error.message
     });
   }
 });

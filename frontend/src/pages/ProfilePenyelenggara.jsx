@@ -37,6 +37,24 @@ const ProfilePenyelenggara = () => {
     }
   };
 
+  const deletePost = async (postId) => {
+    try {
+      await axios.delete(`${BACKEND_URL}/post/${postId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // Refresh posts after deletion
+      fetchUserPosts();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      setError(
+        "Failed to delete post: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+  };
+
   useEffect(() => {
     if (user && user.role === "penyelenggara") {
       fetchUserPosts();
@@ -127,20 +145,20 @@ const ProfilePenyelenggara = () => {
                       : post.description}
                   </p>
                   <div className="flex items-center mt-4">
-                  {Array.isArray(post.categories)
-                  ? post.categories.map((category, index) => (
-                      <span
-                        key={index}
-                        className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
-                      >
-                        {category}
-                      </span>
-                    ))
-                  : post.category && (
-                      <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-                        {post.category}
-                      </span>
-                    )}
+                    {Array.isArray(post.categories)
+                      ? post.categories.map((category, index) => (
+                          <span
+                            key={index}
+                            className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
+                          >
+                            {category}
+                          </span>
+                        ))
+                      : post.category && (
+                          <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
+                            {post.category}
+                          </span>
+                        )}
                     <span className="text-sm text-gray-500">
                       Status: {post.status}
                     </span>
@@ -156,13 +174,12 @@ const ProfilePenyelenggara = () => {
                     </button>
                     <button
                       onClick={() => {
-                        // Implement delete functionality
                         if (
                           window.confirm(
                             "Apakah Anda yakin ingin menghapus lomba ini?"
                           )
                         ) {
-                          // Add delete logic here
+                          deletePost(post.id);
                         }
                       }}
                       className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"

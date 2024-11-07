@@ -24,7 +24,7 @@ const CategoryPage = () => {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          `${BACKEND_URL}/post/category/${category}`
+          `${BACKEND_URL}/post/kategori/${category}`
         );
         if (response.data.success) {
           setPosts(response.data.data);
