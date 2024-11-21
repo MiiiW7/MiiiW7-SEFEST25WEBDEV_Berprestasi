@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import CreatePost from "./pages/CreatePost";
 import CategoryPage from "./pages/CategoryPage";
 import EditPost from "./pages/EditPost";
+import Lomba from "./pages/Lomba";
 
 const App = () => {
   return (
@@ -40,6 +41,14 @@ const App = () => {
           element={
             <ProtectedRoute role="penyelenggara">
               <EditPost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lomba"
+          element={
+            <ProtectedRoute>
+              <Lomba />
             </ProtectedRoute>
           }
         />

@@ -2,15 +2,20 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const Post = ({ id, title, description, image, category, creatorName }) => {
+const Post = ({
+  id,
+  title,
+  description,
+  image,
+  category,
+  creatorName,
+}) => {
   const [imageError, setImageError] = useState(false);
 
   const handleImageError = () => {
     console.log("Image failed to load:", image);
     setImageError(true);
   };
-
-  console.log("Post ID:", id);
 
   if (!id) {
     console.warn("Post ID is undefined");

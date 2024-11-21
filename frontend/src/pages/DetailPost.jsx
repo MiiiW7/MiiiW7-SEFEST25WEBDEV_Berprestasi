@@ -1,12 +1,15 @@
 // src/pages/DetailPost.jsx
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import Axios from "axios";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/navbar";
 
 const DetailPost = () => {
   const { id } = useParams();
+  const { user, token } = useAuth();
   const [post, setPost] = useState(null);
+  const [isFollowed, setIsFollowed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -16,15 +19,24 @@ const DetailPost = () => {
     const fetchPostDetail = async () => {
       try {
         setIsLoading(true);
-        console.log("Fetching post with ID:", id);
 
-        const response = await Axios.get(`${BACKEND_URL}/post/${id}`);
-        console.log("API Response:", response.data);
+        // Fetch post details
+        const response = await axios.get(`${BACKEND_URL}/post/${id}`);
 
         if (response.data.success) {
           setPost(response.data.data);
-        } else {
-          setError(response.data.message || "Failed to fetch post details");
+
+          // If user is logged in, check if they're following this post
+          if (user && token) {
+            const followedResponse = await axios.get(
+              `${BACKEND_URL}/user/followed-posts`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            const followedPosts = followedResponse.data.data;
+            setIsFollowed(followedPosts.some((p) => p.id === id));
+          }
         }
       } catch (err) {
         console.error("Error details:", err.response?.data || err.message);
@@ -35,12 +47,33 @@ const DetailPost = () => {
     };
 
     fetchPostDetail();
-  }, [id]);
+  }, [id, user, token]);
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "";
     if (imagePath.startsWith("http")) return imagePath;
     return `${BACKEND_URL}${imagePath}`;
+  };
+
+  const handleFollow = async () => {
+    if (!user) {
+      window.location.href= "/login";
+      return;
+    }
+
+    try {
+      const endpoint = isFollowed ? "unfollow" : "follow";
+      await axios.post(
+        `${BACKEND_URL}/post/${id}/${endpoint}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setIsFollowed(!isFollowed);
+    } catch (error) {
+      console.error("Error following/unfollowing post:", error);
+    }
   };
 
   if (isLoading) {
@@ -109,7 +142,7 @@ const DetailPost = () => {
               alt={post.title}
               className="w-full h-64 object-cover"
               onError={(e) => {
-                e.target.src = "/placeholder-image.jpg"; // Ganti dengan gambar placeholder
+                e.target.src = "/placeholder-image.jpg"; 
                 console.log("Error loading image:", post.image);
               }}
             />
@@ -137,6 +170,18 @@ const DetailPost = () => {
               </div>
             </div>
           </div>
+          {user && user.role === "pendaftar" && (
+            <button
+              onClick={handleFollow}
+              className={`mt-4 px-6 py-2 rounded-full ${
+                isFollowed
+                  ? "bg-red-500 text-white hover:bg-red-600"
+                  : "bg-yellow-500 text-white hover:bg-yellow-600"
+              }`}
+            >
+              {isFollowed ? "Unfollow" : "Follow"}
+            </button>
+          )}
         </div>
       </main>
     </div>
