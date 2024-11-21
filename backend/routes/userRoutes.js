@@ -1,5 +1,6 @@
 // routes/userRoutes.js
 import express from "express";
+import Post from "../models/post.js";
 import { User } from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -60,7 +61,6 @@ router.post("/auth/register", async (req, res) => {
   }
 });
 
-// Login User
 // Login User
 router.post("/auth/login", async (req, res) => {
   try {
@@ -150,7 +150,6 @@ router.get("/auth/verify", verifyToken, async (req, res) => {
   }
 });
 
-// USER ROUTES
 // Get User Profile
 router.get("/profile", verifyToken, async (req, res) => {
   try {
@@ -227,6 +226,22 @@ router.put("/change-password", verifyToken, async (req, res) => {
       success: false,
       message: "Gagal mengubah password",
       error: error.message,
+    });
+  }
+});
+
+// Get followed posts for a user
+router.get("/followed-posts", verifyToken, async (req, res) => {
+  try {
+    const followedPosts = await Post.find({ followers: req.user.id });
+    res.status(200).json({ success: true, data: followedPosts });
+    console.log(followedPosts)
+  } catch (error) {
+    console.error("Error fetching followed posts:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching followed posts", 
+      error: error.message 
     });
   }
 });

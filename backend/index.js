@@ -33,6 +33,12 @@ app.use('/post', postRoutes);
 // Route user
 app.use('/user', userRoutes);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
 mongoose
   .connect(mongoDBURL, {})
   .then(() => {

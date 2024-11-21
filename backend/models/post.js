@@ -19,25 +19,31 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    categories: [{
-      type: String,
-      enum: [
-        "Akademik",
-        "Non-Akademik",
-        "Seni",
-        "Olahraga",
-        "Teknologi",
-        "Bahasa",
-        "Sains",
-        "Matematika"
-      ],
-      required: true,
-    }],
+    categories: [
+      {
+        type: String,
+        enum: [
+          "Akademik",
+          "Non-Akademik",
+          "Seni",
+          "Olahraga",
+          "Teknologi",
+          "Bahasa",
+          "Sains",
+          "Matematika",
+        ],
+        required: true,
+      },
+    ],
     creator: {
       type: String,
       required: true,
       ref: "User",
     },
+    followers: [{ 
+      type: String, 
+      ref: "User" ,
+    }],
     status: {
       type: String,
       enum: ["published", "draft"],

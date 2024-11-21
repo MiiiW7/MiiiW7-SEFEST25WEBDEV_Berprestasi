@@ -120,7 +120,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Endpoint baru untuk mengambil post berdasarkan ID penyelenggara
 // routes/postRoutes.js
 router.get("/user/:userId", verifyToken, async (req, res) => {
   try {
@@ -197,9 +196,6 @@ router.get("/kategori/:category", async (req, res) => {
 // UPDATE - Memperbarui post berdasarkan ID
 router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
   try {
-    console.log("Received update request for post ID:", req.params.id);
-    console.log("Request body:", req.body);
-
     let categories;
     try {
       // Parse categories dan ambil array yang unik (tidak duplikat)
@@ -296,6 +292,49 @@ router.delete("/:id", verifyToken, async (req, res) => {
       message: "Terjadi kesalahan saat menghapus post",
       error: error.message,
     });
+  }
+});
+
+// Follow a post
+router.post("/:postId/follow", verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findOne({ id: req.params.postId });
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.followers.includes(req.user.id)) {
+      return res.status(400).json({ message: "Already following this post" });
+    }
+
+    post.followers.push(req.user.id);
+    await post.save();
+
+    res.status(200).json({ message: "Successfully followed the post" });
+  } catch (error) {
+    res.status(500).json({ message: "Error following post", error: error.message });
+  }
+});
+
+// Unfollow a post
+router.post("/:postId/unfollow", verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findOne({ id: req.params.postId });
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const index = post.followers.indexOf(req.user.id);
+    if (index === -1) {
+      return res.status(400).json({ message: "Not following this post" });
+    }
+
+    post.followers.splice(index, 1);
+    await post.save();
+
+    res.status(200).json({ message: "Successfully unfollowed the post" });
+  } catch (error) {
+    res.status(500).json({ message: "Error unfollowing post", error: error.message });
   }
 });
 
