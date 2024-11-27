@@ -33,7 +33,7 @@ router.post("/auth/register", async (req, res) => {
       email,
       password: hashedPassword,
       nomor,
-      role: role || "pendaftar"
+      role: role || "pendaftar",
     });
 
     // Save user
@@ -47,16 +47,15 @@ router.post("/auth/register", async (req, res) => {
         name: savedUser.name,
         email: savedUser.email,
         nomor: savedUser.nomor,
-        role: savedUser.role
-      }
+        role: savedUser.role,
+      },
     });
-
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({
       success: false,
       message: "Terjadi kesalahan saat registrasi",
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -234,17 +233,26 @@ router.put("/change-password", verifyToken, async (req, res) => {
 router.get("/followed-posts", verifyToken, async (req, res) => {
   try {
     const followedPosts = await Post.find({ followers: req.user.id });
-    res.status(200).json({ success: true, data: followedPosts });
-    console.log(followedPosts)
+
+    const populatedPosts = await Promise.all(
+      followedPosts.map(async (post) => {
+        const creator = await User.findOne({ id: post.creator }).lean();
+        return {
+          ...post.toObject(),
+          creator: creator ? { id: creator.id, name: creator.name } : null,
+        };
+      })
+    );
+
+    res.status(200).json({ success: true, data: populatedPosts });
   } catch (error) {
     console.error("Error fetching followed posts:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Error fetching followed posts", 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: "Error fetching followed posts",
+      error: error.message,
     });
   }
 });
-
 
 export default router;

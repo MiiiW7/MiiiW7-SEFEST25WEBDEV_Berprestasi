@@ -2,65 +2,112 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const Post = ({
-  id,
-  title,
-  description,
-  image,
-  category,
-  creatorName,
-}) => {
+const getCategoryColor = (category) => {
+  const categoryColors = {
+    Akademik: "bg-blue-100 text-blue-800",
+    "Non-Akademik": "bg-green-100 text-green-800",
+    Seni: "bg-purple-100 text-purple-800",
+    Olahraga: "bg-red-100 text-red-800",
+    Teknologi: "bg-indigo-100 text-indigo-800",
+    Bahasa: "bg-yellow-100 text-yellow-800",
+    Sains: "bg-teal-100 text-teal-800",
+    Matematika: "bg-pink-100 text-pink-800",
+    default: "bg-gray-100 text-gray-800",
+  };
+
+  return categoryColors[category] || categoryColors.default;
+};
+
+const Post = ({ id, title, description, image, categories, creatorName }) => {
   const [imageError, setImageError] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState("56.25%");
+
+  const handleImageLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.target;
+    const calculatedAspectRatio = (naturalHeight / naturalWidth) * 100;
+
+    const normalizedAspectRatio = Math.max(
+      40,
+      Math.min(75, calculatedAspectRatio)
+    );
+    setAspectRatio(`${normalizedAspectRatio}%`);
+  };
 
   const handleImageError = () => {
-    console.log("Image failed to load:", image);
     setImageError(true);
   };
 
-  if (!id) {
-    console.warn("Post ID is undefined");
-    return null; // atau tampilkan fallback UI
-  }
-
   return (
-    <Link to={`/post/${id}`} className="block">
-      <div className="p-4 m-4 w-80 bg-white shadow-md rounded-xl transition-transform hover:scale-105">
-        <picture className="rounded-lg block overflow-hidden">
+    <Link to={`/post/${id}`} className="block w-full">
+      <div
+        className="bg-white rounded-xl overflow-hidden shadow-md border border-gray-100 flex"
+        style={{
+          aspectRatio: `1 / ${parseFloat(aspectRatio) / 100 + 0.4}`,
+        }}
+      >
+        {/* Kontainer Gambar */}
+        <div className="relative w-1/2" style={{ paddingTop: aspectRatio }}>
           {!imageError ? (
             <img
-              className="w-full h-40 object-cover"
+              className="absolute top-0 left-0 w-full h-full object-contain bg-gray-50"
               src={image}
               alt={title}
+              onLoad={handleImageLoad}
               onError={handleImageError}
             />
           ) : (
-            <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-              <span>Image not available</span>
+            <div className="absolute top-0 left-0 w-full h-full bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-500">Image not available</span>
             </div>
           )}
-        </picture>
-        <div className="px-6 py-4">
-          <div className="font-bold text-xl mb-2">{title}</div>
-          <p className="text-gray-700 text-base line-clamp-3">{description}</p>
-          <p className="text-gray-600 text-sm mt-2">
-            Created by: {creatorName}
-          </p>
         </div>
-        <div className="px-6 pt-4 pb-2">
-          {Array.isArray(category)
-            ? category.map((cat, index) => (
-                <span
-                  key={index}
-                  className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
-                >
-                  {cat}
-                </span>
-              ))
-            : category && (
-                <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-                  {category}
-                </span>
-              )}
+
+        {/* Konten Card */}
+        <div className="p-4 flex flex-col  flex-grow w-1/2">
+          {/* Judul */}
+          <h2 className="font-bold text-lg mb-2 line-clamp-2 text-gray-800 hover:text-blue-600 transition-colors">
+            {title}
+          </h2>
+
+          {/* Deskripsi */}
+          <p className="text-gray-700 text-base line-clamp-4 mb-2 ">
+            {description}
+          </p>
+
+          <div className="mt-auto">
+            {/* Informasi Pembuat */}
+            <div className="flex items-center mb-4">
+              <div className="mr-2">
+                <img
+                  src="/default-avatar.png"
+                  alt={creatorName || "Unknown Creator"}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">
+                  {creatorName || "Unknown Creator"}
+                </p>
+              </div>
+            </div>
+
+            {/* Kategori - hanya menampilkan dua kategori */}
+            <div className="flex flex-wrap gap-2">
+              {categories &&
+                categories.slice(0, 2).map((category, index) => (
+                  <span
+                    key={index}
+                    className={`
+                  text-xs px-2.5 py-1 rounded-full font-medium 
+                  border transition-all duration-300
+                  ${getCategoryColor(category)}
+                `}
+                  >
+                    {category}
+                  </span>
+                ))}
+            </div>
+          </div>
         </div>
       </div>
     </Link>

@@ -260,7 +260,7 @@ const EditPost = () => {
           <div className="flex justify-between space-x-4">
             <button
               type="button"
-              onClick={() => navigate("/profile-penyelenggara")}
+              onClick={() => navigate("/profile")}
               className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
               Batal

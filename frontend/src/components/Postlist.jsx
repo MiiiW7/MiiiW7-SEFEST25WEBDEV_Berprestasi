@@ -9,7 +9,7 @@ const Postlist = () => {
   const [error, setError] = useState(null);
   const { user, token } = useAuth();
 
-  const BACKEND_URL = "http://localhost:9000"; 
+  const BACKEND_URL = "http://localhost:9000";
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -17,62 +17,86 @@ const Postlist = () => {
       try {
         const postsResponse = await axios.get(`${BACKEND_URL}/post`);
         let posts = postsResponse.data.data || [];
-        
+
         if (user && token) {
           try {
             const followedResponse = await axios.get(
               `${BACKEND_URL}/user/followed-posts`,
               {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}` },
               }
             );
-            const followedPostIds = followedResponse.data.data.map(post => post.id);
-            posts = posts.map(post => ({
+            const followedPostIds = followedResponse.data.data.map(
+              (post) => post.id
+            );
+            posts = posts.map((post) => ({
               ...post,
-              isFollowed: followedPostIds.includes(post.id)
+              isFollowed: followedPostIds.includes(post.id),
             }));
-            console.log(followedPostIds)
           } catch (followError) {
             console.error("Error fetching followed posts:", followError);
-            // Tidak menghentikan render jika gagal fetch followed posts
           }
         }
-  
+
         setDataPost(posts);
       } catch (err) {
-        console.error('Error details:', err.response?.data || err.message);
+        console.error("Error details:", err.response?.data || err.message);
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
-  
+
     fetchPosts();
   }, [user, token]);
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "";
     if (imagePath.startsWith("http")) return imagePath;
-    return `${BACKEND_URL}${imagePath}`; // Gunakan BACKEND_URL
+    return `${BACKEND_URL}${imagePath}`;
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!dataPost || dataPost.length === 0) return <div>No posts available</div>;
+  // State Loading
+  if (isLoading) return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-blue-500"></div>
+    </div>
+  );
+
+  // State Error
+  if (error) return (
+    <div className="flex justify-center items-center h-screen text-red-500 text-xl">
+      Error: {error}
+    </div>
+  );
+
+  // State Tidak Ada Post
+  if (!dataPost || dataPost.length === 0) return (
+    <div className="flex justify-center items-center h-screen text-gray-500 text-xl">
+      Tidak ada post tersedia
+    </div>
+  );
 
   return (
-    <div className="flex flex-wrap justify-center">
-      {dataPost.map((post) => (
-        <Post
-          key={post._id}
-          id={post.id}
-          title={post.title}
-          description={post.description}
-          image={getImageUrl(post.image)}
-          category={post.categories}
-          creatorName={post.creator?.name || "Unknown"}
-        />
-      ))}
+    <div className="mx-6 my-6 justify-items-center">
+      {/* Grid Responsif */}
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:w-[400px] md:w-[800px] lg:w-[800px] xl:w-[1000px] ">
+        {dataPost.map((post) => (
+          <div 
+            key={post._id} 
+            className="flex items-center"
+          >
+            <Post
+              id={post.id}
+              title={post.title}
+              description={post.description}
+              image={getImageUrl(post.image)}
+              categories={post.categories}
+              creatorName={post.creator?.name || "Unknown"}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

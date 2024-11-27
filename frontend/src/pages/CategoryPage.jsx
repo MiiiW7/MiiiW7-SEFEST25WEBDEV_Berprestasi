@@ -26,6 +26,7 @@ const CategoryPage = () => {
         const response = await axios.get(
           `${BACKEND_URL}/post/kategori/${category}`
         );
+        console.log(response.data);
         if (response.data.success) {
           setPosts(response.data.data);
         }

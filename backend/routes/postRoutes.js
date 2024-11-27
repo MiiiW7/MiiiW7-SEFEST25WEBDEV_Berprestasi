@@ -68,7 +68,6 @@ router.get("/", async (req, res) => {
         };
       })
     );
-
     res.status(200).json({
       success: true,
       data: populatedPosts,
@@ -120,11 +119,10 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// routes/postRoutes.js
+// berdasarkan id pembuat
 router.get("/user/:userId", verifyToken, async (req, res) => {
   try {
     const { userId } = req.params;
-
 
     // Verifikasi akses berdasarkan peran
     if (req.user.id !== userId && req.user.role !== 'admin') {
