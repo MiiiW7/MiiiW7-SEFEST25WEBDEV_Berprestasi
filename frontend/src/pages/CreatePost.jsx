@@ -19,10 +19,13 @@ const CreatePost = () => {
     "Matematika",
   ];
 
+  const AVAILABLE_JENJANG = ["SD", "SMP", "SMA", "SMK", "Mahasiswa", "Umum"];
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     categories: [],
+    jenjangs: [],
     image: null,
     status: "published",
   });
@@ -80,6 +83,7 @@ const CreatePost = () => {
       formDataToSend.append("title", formData.title);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("categories", JSON.stringify(formData.categories));
+      formDataToSend.append("jenjangs", JSON.stringify(formData.jenjangs));
       formDataToSend.append("status", formData.status);
       if (formData.image) {
         formDataToSend.append("image", formData.image);
@@ -122,6 +126,25 @@ const CreatePost = () => {
         return {
           ...prevState,
           categories: prevState.categories.filter((c) => c !== category),
+        };
+      }
+    });
+  };
+
+  const handleJenjangChange = (e) => {
+    const jenjang = e.target.value;
+    const isChecked = e.target.checked;
+
+    setFormData((prevState) => {
+      if (isChecked) {
+        return {
+          ...prevState,
+          jenjangs: [...prevState.jenjangs, jenjang],
+        };
+      } else {
+        return {
+          ...prevState,
+          jenjangs: prevState.jenjangs.filter((j) => j !== jenjang),
         };
       }
     });
@@ -188,6 +211,33 @@ const CreatePost = () => {
                     className="ml-2 block text-sm text-gray-900"
                   >
                     {category}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Jenjang (pilih satu atau lebih)
+            </label>
+            <div className="space-y-2">
+              {AVAILABLE_JENJANG.map((jenjang) => (
+                <div key={jenjang} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`jenjang-${jenjang}`}
+                    name="jenjangs"
+                    value={jenjang}
+                    checked={formData.jenjangs.includes(jenjang)}
+                    onChange={handleJenjangChange}
+                    className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor={`jenjang-${jenjang}`}
+                    className="ml-2 block text-sm text-gray-900"
+                  >
+                    {jenjang}
                   </label>
                 </div>
               ))}

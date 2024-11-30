@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-import Navbar from "../components/navbar";
 import { Link } from "react-router-dom";
+import Navbar from "../components/navbar";
+import Footer from "../components/Footer";
 
 const ProfilePendaftar = () => {
   const { user, updateProfile, token } = useAuth();
@@ -183,13 +184,13 @@ const ProfilePendaftar = () => {
             {followedPosts.map((post) => (
               <div
                 key={post.id}
-                className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="flex border rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
-                <Link to={`/post/${post.id}`}>
+                <Link to={`/post/${post.id}`} className="">
                   <img
                     src={getImageUrl(post.image)}
                     alt={post.title}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-full object-contain rounded-xl"
                   />
                 </Link>
                 <div className="p-4">
@@ -210,13 +211,20 @@ const ProfilePendaftar = () => {
                       </span>
                     ))}
                   </div>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {post.jenjangs?.map((jenjang, index) => (
+                      <span
+                        key={index}
+                        className="bg-yellow-200 px-2 py-1 rounded-full text-sm"
+                      >
+                        {" "}
+                        {jenjang}
+                      </span>
+                    ))}
+                  </div>
                   <div className="text-sm text-gray-500 mb-4">
-                    Diikuti sejak:{" "}
-                    {new Date(post.createdAt).toLocaleDateString("id-ID", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    Created By:{" "}
+                    {post.creator?.name || "Unknown"}
                   </div>
                   <div className="flex justify-between items-center">
                     <Link
@@ -284,6 +292,7 @@ const ProfilePendaftar = () => {
           </div>
         )}
       </div>
+      <Footer />
     </>
   );
 };

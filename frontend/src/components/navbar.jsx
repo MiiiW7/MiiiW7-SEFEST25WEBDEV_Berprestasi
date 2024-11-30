@@ -6,7 +6,10 @@ import { useAuth } from "../context/AuthContext";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
-  const { user, logout, checkAuth } = useAuth(); // Tambahkan checkAuth di sini
+  const [showJenjang, setshowJenjang] = useState(false);
+  const [categoryTimeout, setCategoryTimeout] = useState(null);
+  const [jenjangTimeout, setJenjangTimeout] = useState(null);
+  const { user, logout, checkAuth } = useAuth(); 
 
   const categories = [
     "Akademik",
@@ -19,6 +22,38 @@ const Navbar = () => {
     "Matematika",
   ];
 
+  const jenjangs = ["SD", "SMP", "SMA", "SMK", "Mahasiswa", "Umum"];
+
+  const handleMouseEnterCategories = () => {
+    if (categoryTimeout) {
+      clearTimeout(categoryTimeout);
+    }
+    setShowCategories(true);
+  };
+
+  const handleMouseLeaveCategories = () => {
+    setCategoryTimeout(
+      setTimeout(() => {
+        setShowCategories(false);
+      }, 200)
+    ); // 200 ms delay before hiding
+  };
+
+  const handleMouseEnterJenjang = () => {
+    if (jenjangTimeout) {
+      clearTimeout(jenjangTimeout);
+    }
+    setshowJenjang(true);
+  };
+
+  const handleMouseLeaveJenjang = () => {
+    setJenjangTimeout(
+      setTimeout(() => {
+        setshowJenjang(false);
+      }, 200)
+    ); // 200 ms delay before hiding
+  };
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -29,7 +64,7 @@ const Navbar = () => {
   }, [checkAuth]);
 
   return (
-    <div className="bg-white sticky top-0 left-0 w-full z-50">
+    <div className="bg-white sticky top-0 left-0 w-full z-50 shadow-md">
       <nav className="flex justify-between items-center w-[92%] mx-auto">
         <div className="flex items-center">
           <img src={logo} alt="Logo" width="60" className="mr-4" />
@@ -41,16 +76,21 @@ const Navbar = () => {
                 Home
               </Link>
             </li>
-            <li className="relative">
-              <button
-                className="hover:text-yellow-600 focus:outline-none"
-                onClick={() => setShowCategories(!showCategories)}
-              >
+            {/* Kategori Dropdown */}
+            <li
+              className="relative"
+              onMouseEnter={handleMouseEnterCategories}
+              onMouseLeave={handleMouseLeaveCategories}
+            >
+              <button className="hover:text-yellow-600 focus:outline-none">
                 Kategori
               </button>
-              {/* Dropdown Menu */}
               {showCategories && (
-                <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div
+                  className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                  onMouseEnter={handleMouseEnterCategories} // Tetap buka saat hover di dropdown
+                  onMouseLeave={handleMouseLeaveCategories} // Tutup saat keluar dari dropdown
+                >
                   <div className="py-1" role="menu">
                     {categories.map((category) => (
                       <Link
@@ -61,6 +101,38 @@ const Navbar = () => {
                         onClick={() => setShowCategories(false)}
                       >
                         {category}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </li>
+
+            {/* Jenjang Dropdown */}
+            <li
+              className="relative"
+              onMouseEnter={handleMouseEnterJenjang}
+              onMouseLeave={handleMouseLeaveJenjang}
+            >
+              <button className="hover:text-yellow-600 focus:outline-none">
+                Jenjang
+              </button>
+              {showJenjang && (
+                <div
+                  className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                  onMouseEnter={handleMouseEnterJenjang} // Tetap buka saat hover di dropdown
+                  onMouseLeave={handleMouseLeaveJenjang} // Tutup saat keluar dari dropdown
+                >
+                  <div className="py-1" role="menu">
+                    {jenjangs.map((jenjang) => (
+                      <Link
+                        key={jenjang}
+                        to={`/jenjang/${jenjang}`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100"
+                        role="menuitem"
+                        onClick={() => setshowJenjang(false)}
+                      >
+                        {jenjang}
                       </Link>
                     ))}
                   </div>
@@ -153,6 +225,31 @@ const Navbar = () => {
                       }}
                     >
                       {category}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="w-80">
+              <button
+                className="bg-yellow-300 w-full py-2 rounded-full"
+                onClick={() => setshowJenjang(!showJenjang)}
+              >
+                Jenjang
+              </button>
+              {showJenjang && (
+                <div className="mt-2 bg-white rounded-md shadow-lg">
+                  {jenjangs.map((jenjang) => (
+                    <Link
+                      key={jenjang}
+                      to={`/kategori/${jenjang}`}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100"
+                      onClick={() => {
+                        setshowJenjang(false);
+                        setIsOpen(false);
+                      }}
+                    >
+                      {jenjang}
                     </Link>
                   ))}
                 </div>

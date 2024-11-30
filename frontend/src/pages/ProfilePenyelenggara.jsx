@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import Navbar from "../components/navbar";
+import Footer from "../components/Footer";
 
 const ProfilePenyelenggara = () => {
   const { user, token } = useAuth();
@@ -193,6 +194,7 @@ const ProfilePenyelenggara = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

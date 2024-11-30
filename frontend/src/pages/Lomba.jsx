@@ -107,6 +107,7 @@ const Lomba = () => {
             description={post.description}
             image={getImageUrl(post.image)}
             category={post.categories}
+            jenjangs={post.jenjangs}
             creatorName={post.creator?.name || "Unknown"}
           />
           ))}

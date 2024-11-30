@@ -26,11 +26,13 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
     }
 
     const categories = JSON.parse(req.body.categories); // Ubah ini untuk mengurai string JSON
+    const jenjangs = JSON.parse(req.body.jenjangs); // Ubah ini untuk mengurai string JSON
 
     const post = new Post({
       title: req.body.title,
       description: req.body.description,
       categories: categories,
+      jenjangs: jenjangs,
       creator: req.user.id,
       image: `/uploads/${req.file.filename}`,
       status: req.body.status || "published",
@@ -191,6 +193,38 @@ router.get("/kategori/:category", async (req, res) => {
   }
 });
 
+// Berdasarkan Jenjang
+router.get("/jenjang/:jenjang", async (req, res) => {
+  try {
+    const { jenjang } = req.params;
+    const posts = await Post.find({ 
+      jenjangs: jenjang,
+      status: "published" 
+    }).lean();
+
+    const populatedPosts = await Promise.all(
+      posts.map(async (post) => {
+        const creator = await User.findOne({ id: post.creator }).lean();
+        return {
+          ...post,
+          creator: creator ? { id: creator.id, name: creator.name } : null,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: populatedPosts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching posts by category",
+      error: error.message,
+    });
+  }
+});
+
 // UPDATE - Memperbarui post berdasarkan ID
 router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
   try {
@@ -211,10 +245,28 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
       });
     }
 
+    let jenjangs;
+    try {
+      // Parse categories dan ambil array yang unik (tidak duplikat)
+      const parsedJenjangs = JSON.parse(req.body.jenjangs);
+      // Filter hanya kategori yang valid (tidak terpecah menjadi karakter)
+      jenjangs = parsedJenjangs.filter(cat => 
+        ['SD', 'SMP', 'SMA', 'SMK', 'Mahasiswa', 'Umum'].includes(cat)
+      );
+    } catch (parseError) {
+      console.error("Error parsing categories:", parseError);
+      return res.status(400).json({
+        success: false,
+        message: "Format kategori tidak valid",
+        error: parseError.message
+      });
+    }
+
     let updateData = {
       title: req.body.title,
       description: req.body.description,
       categories: categories, // Menggunakan categories yang sudah difilter
+      jenjangs: jenjangs, // Menggunakan jenjangs yang sudah difilter
       status: req.body.status
     };
 

@@ -35,6 +35,20 @@ const postSchema = new mongoose.Schema(
         required: true,
       },
     ],
+    jenjangs: [
+      {
+        type: String,
+        enum: [
+          "SD",
+          "SMP",
+          "SMA",
+          "SMK",
+          "Mahasiswa",
+          "Umum",
+        ],
+        required: true,
+      },
+    ],
     creator: {
       type: String,
       required: true,

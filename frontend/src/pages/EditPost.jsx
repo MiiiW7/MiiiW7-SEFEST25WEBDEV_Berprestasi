@@ -16,6 +16,8 @@ const AVAILABLE_CATEGORIES = [
   "Matematika",
 ];
 
+const AVAILABLE_JENJANG = ["SD", "SMP", "SMA", "SMK", "Mahasiswa", "Umum"];
+
 const EditPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ const EditPost = () => {
     title: "",
     description: "",
     categories: [],
+    jenjangs: [],
     status: "",
     image: null,
   });
@@ -39,7 +42,10 @@ const EditPost = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const postData = response.data.data;
-        setPost(postData);
+        setPost({
+          ...postData,
+          jenjangs: postData.jenjangs || [],
+        });
         setCurrentImage(postData.image);
       } catch (error) {
         setError(
@@ -86,6 +92,25 @@ const EditPost = () => {
     });
   };
 
+  const handleJenjangChange = (e) => {
+    const jenjang = e.target.value;
+    const isChecked = e.target.checked;
+
+    setPost((prevPost) => {
+      if (isChecked) {
+        return {
+          ...prevPost,
+          jenjangs: [...prevPost.jenjangs, jenjang],
+        };
+      } else {
+        return {
+          ...prevPost,
+          jenjangs: prevPost.jenjangs.filter((j) => j !== jenjang),
+        };
+      }
+    });
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -106,16 +131,17 @@ const EditPost = () => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-  
+
     const formData = new FormData();
     formData.append("title", post.title);
     formData.append("description", post.description);
     formData.append("categories", JSON.stringify(post.categories));
+    formData.append("jenjangs", JSON.stringify(post.jenjangs));
     formData.append("status", post.status);
     if (post.image instanceof File) {
       formData.append("image", post.image);
     }
-  
+
     try {
       await axios.put(`${BACKEND_URL}/post/${id}`, formData, {
         headers: {
@@ -123,7 +149,6 @@ const EditPost = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      // Ubah ini dari "/profile-penyelenggara" menjadi "/profile"
       navigate("/profile");
     } catch (error) {
       setError(
@@ -203,6 +228,32 @@ const EditPost = () => {
                     className="ml-2 block text-sm text-gray-900"
                   >
                     {category}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Jenjang (pilih satu atau lebih)
+            </label>
+            <div className="space-y-2">
+              {AVAILABLE_JENJANG.map((jenjang) => (
+                <div key={jenjang} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`jenjang-${jenjang}`}
+                    name="jenjangs"
+                    value={jenjang}
+                    checked={post.jenjangs.includes(jenjang)}
+                    onChange={handleJenjangChange}
+                    className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor={`jenjang-${jenjang}`}
+                    className="ml-2 block text-sm text-gray-900"
+                  >
+                    {jenjang}
                   </label>
                 </div>
               ))}

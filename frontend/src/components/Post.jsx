@@ -18,7 +18,15 @@ const getCategoryColor = (category) => {
   return categoryColors[category] || categoryColors.default;
 };
 
-const Post = ({ id, title, description, image, categories, creatorName }) => {
+const Post = ({
+  id,
+  title,
+  description,
+  image,
+  categories,
+  jenjangs,
+  creatorName,
+}) => {
   const [imageError, setImageError] = useState(false);
   const [aspectRatio, setAspectRatio] = useState("56.25%");
 
@@ -104,6 +112,18 @@ const Post = ({ id, title, description, image, categories, creatorName }) => {
                 `}
                   >
                     {category}
+                  </span>
+                ))}
+            </div>
+
+            {/* Kategori - hanya menampilkan jenjang */}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {jenjangs &&
+                jenjangs.slice(0, 2).map((jenjang, index) => (
+                  <span
+                    key={index}
+                    className={`text-xs px-2.5 py-1 rounded-full font-medium border transition-all duration-300`}>
+                    {jenjang}
                   </span>
                 ))}
             </div>

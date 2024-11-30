@@ -8,6 +8,7 @@ import DetailPost from "./pages/DetailPost";
 import Register from "./pages/Register";
 import CreatePost from "./pages/CreatePost";
 import CategoryPage from "./pages/CategoryPage";
+import JenjangPage from "./pages/JenjangPage";
 import EditPost from "./pages/EditPost";
 import Lomba from "./pages/Lomba";
 
@@ -36,6 +37,7 @@ const App = () => {
           }
         />
         <Route path="/kategori/:category" element={<CategoryPage />} />
+        <Route path="/jenjang/:jenjang" element={<JenjangPage />} />
         <Route
           path="/edit-post/:id"
           element={
