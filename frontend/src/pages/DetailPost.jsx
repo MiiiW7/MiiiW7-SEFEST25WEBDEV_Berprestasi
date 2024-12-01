@@ -51,6 +51,17 @@ const DetailPost = () => {
     fetchPostDetail();
   }, [id, user, token]);
 
+  // Format tanggal
+  const formatTanggal = (tanggal) => {
+    if (!tanggal) return "Tanggal tidak tersedia";
+    return new Date(tanggal).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      weekday: "long",
+    });
+  };
+
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "";
     if (imagePath.startsWith("http")) return imagePath;
@@ -186,6 +197,21 @@ const DetailPost = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Tambahkan informasi tanggal dan status */}
+                <div className="mt-4 flex justify-between items-center">
+                  <div>
+                    <p className="text-gray-600">
+                      <strong>Tanggal Pelaksanaan:</strong>{" "}
+                      {formatTanggal(post.pelaksanaan)}
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-sm text-gray-500">
+                      Status: {post.status}
+                </span>
+
                 <div>
                   <span className="text-sm text-gray-500">
                     By: {post.creator?.name || "Unknown"}

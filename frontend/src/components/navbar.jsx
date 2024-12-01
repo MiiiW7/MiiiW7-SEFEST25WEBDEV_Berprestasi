@@ -1,7 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import logo from "../assets/logo.png";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import axios from "axios";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,7 +11,31 @@ const Navbar = () => {
   const [showJenjang, setshowJenjang] = useState(false);
   const [categoryTimeout, setCategoryTimeout] = useState(null);
   const [jenjangTimeout, setJenjangTimeout] = useState(null);
-  const { user, logout, checkAuth } = useAuth(); 
+  const { user, logout, checkAuth, token } = useAuth();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  const fetchUnreadNotificationsCount = async () => {
+    if (!user || !token) return;
+
+    try {
+      const response = await axios.get(
+        "http://localhost:9000/user/notifications", 
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      // Pastikan properti unreadCount sesuai dengan response dari backend
+      setUnreadNotifications(response.data.unreadCount || 0);
+    } catch (error) {
+      console.error("Gagal mengambil jumlah notifikasi yang belum dibaca", error);
+    }
+  };
+
+  // Ambil jumlah notifikasi yang belum dibaca saat komponen dimount dan user login
+  useEffect(() => {
+    fetchUnreadNotificationsCount();
+  }, [user, token]);
 
   const categories = [
     "Akademik",
@@ -145,9 +171,20 @@ const Navbar = () => {
               </Link>
             </li>
             <li className="">
-              <Link to="/Pemberitahuan" className="hover:text-yellow-600">
-                Pemberitahuan
-              </Link>
+              {/* Tambahkan link ke halaman notifikasi */}
+        {user && (
+          <Link 
+            to="/notifications" 
+            className="relative p-2 rounded-full hover:bg-gray-100"
+          >
+            Pemberitahuan
+            {unreadNotifications > 0 && (
+              <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                {unreadNotifications}
+              </span>
+            )}
+          </Link>
+        )}
             </li>
           </ul>
         </div>

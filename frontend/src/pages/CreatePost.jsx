@@ -27,7 +27,8 @@ const CreatePost = () => {
     categories: [],
     jenjangs: [],
     image: null,
-    status: "published",
+    pelaksanaan: "",
+    status: "Belum Dilaksanakan",
   });
 
   useEffect(() => {
@@ -84,6 +85,7 @@ const CreatePost = () => {
       formDataToSend.append("description", formData.description);
       formDataToSend.append("categories", JSON.stringify(formData.categories));
       formDataToSend.append("jenjangs", JSON.stringify(formData.jenjangs));
+      formDataToSend.append("pelaksanaan", formData.pelaksanaan);
       formDataToSend.append("status", formData.status);
       if (formData.image) {
         formDataToSend.append("image", formData.image);
@@ -244,6 +246,22 @@ const CreatePost = () => {
             </div>
           </div>
 
+          {/* Tambahkan input untuk tanggal pelaksanaan */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tanggal Pelaksanaan
+            </label>
+            <input
+              type="date"
+              name="pelaksanaan"
+              value={formData.pelaksanaan}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500"
+              min={new Date().toISOString().split("T")[0]} // Batasi tanggal minimal hari ini
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Gambar
@@ -263,21 +281,6 @@ const CreatePost = () => {
                 className="mt-2 max-w-xs rounded"
               />
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500"
-            >
-              <option value="published">Published</option>
-              <option value="draft">Draft</option>
-            </select>
           </div>
 
           <div className="flex justify-end">

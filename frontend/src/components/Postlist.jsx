@@ -93,6 +93,7 @@ const Postlist = () => {
               image={getImageUrl(post.image)}
               categories={post.categories}
               jenjangs={post.jenjangs}
+              pelaksanaan={post.pelaksanaan}
               creatorName={post.creator?.name || "Unknown"}
             />
           </div>

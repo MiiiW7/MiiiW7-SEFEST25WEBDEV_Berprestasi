@@ -25,10 +25,20 @@ const Post = ({
   image,
   categories,
   jenjangs,
+  pelaksanaan,
   creatorName,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [aspectRatio, setAspectRatio] = useState("56.25%");
+
+  const formatTanggal = (tanggal) => {
+    if (!tanggal) return "-";
+    return new Date(tanggal).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
   const handleImageLoad = (e) => {
     const { naturalWidth, naturalHeight } = e.target;
@@ -116,16 +126,28 @@ const Post = ({
                 ))}
             </div>
 
-            {/* Kategori - hanya menampilkan jenjang */}
+            {/* Jenjang - hanya menampilkan jenjang */}
             <div className="flex flex-wrap gap-2 mt-2">
               {jenjangs &&
                 jenjangs.slice(0, 2).map((jenjang, index) => (
                   <span
                     key={index}
-                    className={`text-xs px-2.5 py-1 rounded-full font-medium border transition-all duration-300`}>
+                    className={`text-xs px-2.5 py-1 rounded-full font-medium border transition-all duration-300`}
+                  >
                     {jenjang}
                   </span>
                 ))}
+            </div>
+
+            {/* Tambahkan informasi tanggal dan status */}
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Tanggal Pelaksanaan: {formatTanggal(pelaksanaan)}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

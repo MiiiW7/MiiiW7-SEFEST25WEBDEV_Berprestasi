@@ -1,10 +1,10 @@
 import express from "express";
-import upload from "../multer.js";
-import Post from "../models/post.js";
-import { User } from "../models/user.js";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import fs from "fs";
+import upload from "../multer.js";
+import Post from "../models/post.js";
+import { User } from "../models/user.js";
 import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -34,8 +34,9 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
       categories: categories,
       jenjangs: jenjangs,
       creator: req.user.id,
+      pelaksanaan: new Date(req.body.pelaksanaan),
       image: `/uploads/${req.file.filename}`,
-      status: req.body.status || "published",
+      status: req.body.status || "Belum Dilaksanakan",
     });
 
     const savedPost = await post.save();
@@ -267,10 +268,9 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
       description: req.body.description,
       categories: categories, // Menggunakan categories yang sudah difilter
       jenjangs: jenjangs, // Menggunakan jenjangs yang sudah difilter
+      pelaksanaan: new Date(req.body.pelaksanaan),
       status: req.body.status
     };
-
-    console.log("Update data:", updateData);
 
     const updatedPost = await Post.findOneAndUpdate(
       { id: req.params.id },
@@ -385,6 +385,50 @@ router.post("/:postId/unfollow", verifyToken, async (req, res) => {
     res.status(200).json({ message: "Successfully unfollowed the post" });
   } catch (error) {
     res.status(500).json({ message: "Error unfollowing post", error: error.message });
+  }
+});
+
+// Di postRoutes.js
+router.get('/check-status-manually', async (req, res) => {
+  try {
+    const now = new Date();
+    console.log('Current date:', now);
+
+    // Cari post yang seharusnya diupdate
+    const postsToUpdate = await Post.find({
+      pelaksanaan: { $lte: now },
+      status: 'Belum Dilaksanakan'
+    });
+
+    console.log('Posts to update:', postsToUpdate.map(post => ({
+      id: post.id,
+      title: post.title,
+      pelaksanaan: post.pelaksanaan,
+      status: post.status
+    })));
+
+    // Lakukan update manual
+    const updateResult = await Post.updateMany(
+      {
+        pelaksanaan: { $lte: now },
+        status: 'Belum Dilaksanakan'
+      },
+      { $set: { status: 'Sedang Dilaksanakan' } }
+    );
+
+    res.json({
+      message: 'Status check completed',
+      currentDate: now,
+      matchedCount: updateResult.matchedCount,
+      modifiedCount: updateResult.modifiedCount,
+      postsToUpdate: postsToUpdate
+    });
+  } catch (error) {
+    console.error('Error in manual status check:', error);
+    res.status(500).json({ 
+      message: 'Error checking status', 
+      error: error.message 
+    });
   }
 });
 

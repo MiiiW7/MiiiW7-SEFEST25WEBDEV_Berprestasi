@@ -1,12 +1,14 @@
 import express from "express";
-import { PORT, mongoDBURL } from "./config.js";
 import mongoose from "mongoose";
-import postRoutes from "./routes/postRoutes.js";
-import userRoutes from "./routes/userRoutes.js"
 import cors from 'cors';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';  // Tambahkan import path
-import path from 'path';  // Tambahkan ini
+import { dirname, join } from 'path';  
+import path from 'path';  
+import { PORT, mongoDBURL } from "./config.js";
+import postRoutes from "./routes/postRoutes.js";
+import userRoutes from "./routes/userRoutes.js"
+import './src/postSchedulerJob.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -32,6 +34,9 @@ app.use('/post', postRoutes);
 
 // Route user
 app.use('/user', userRoutes);
+
+// Route Notif
+app.use('/notifications', notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

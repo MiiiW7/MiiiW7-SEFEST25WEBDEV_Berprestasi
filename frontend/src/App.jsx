@@ -11,6 +11,7 @@ import CategoryPage from "./pages/CategoryPage";
 import JenjangPage from "./pages/JenjangPage";
 import EditPost from "./pages/EditPost";
 import Lomba from "./pages/Lomba";
+import NotificationPage from "./pages/NotificationPage";
 
 const App = () => {
   return (
@@ -54,6 +55,12 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route 
+        path="/notifications" 
+        element={
+            <NotificationPage />
+        } 
+      />
       </Routes>
     </AuthProvider>
   );

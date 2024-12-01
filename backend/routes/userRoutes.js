@@ -1,6 +1,7 @@
 // routes/userRoutes.js
 import express from "express";
 import Post from "../models/post.js";
+import Notification from "../models/notification.js";
 import { User } from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -251,6 +252,156 @@ router.get("/followed-posts", verifyToken, async (req, res) => {
       success: false,
       message: "Error fetching followed posts",
       error: error.message,
+    });
+  }
+});
+
+// Mendapatkan semua notifikasi
+router.get("/notifications", verifyToken, async (req, res) => {
+  try {
+    // Cari notifikasi berdasarkan userId
+    const notifications = await Notification.find({ 
+      userId: req.user.id 
+    }).sort({ createdAt: -1 }); // Urutkan dari yang terbaru
+
+    // Proses populate manual
+    const populatedNotifications = await Promise.all(
+      notifications.map(async (notification) => {
+        try {
+          // Cari post berdasarkan ID (bukan ObjectId)
+          const post = await Post.findOne({ id: notification.postId });
+          
+          return {
+            _id: notification._id,
+            userId: notification.userId,
+            postId: post ? {
+              id: post.id,
+              title: post.title,
+              image: post.image,
+              pelaksanaan: post.pelaksanaan,
+              status: post.status
+            } : null,
+            message: notification.message,
+            type: notification.type,
+            isRead: notification.isRead,
+            createdAt: notification.createdAt
+          };
+        } catch (postError) {
+          console.error('Error finding post for notification:', postError);
+          return null;
+        }
+      })
+    );
+
+    // Filter notifikasi yang valid
+    const validNotifications = populatedNotifications.filter(n => n !== null);
+
+    // Hitung jumlah notifikasi yang belum dibaca
+    const unreadCount = validNotifications.filter(n => !n.isRead).length;
+
+    res.status(200).json({
+      success: true,
+      data: validNotifications,
+      unreadCount: unreadCount
+    });
+  } catch (error) {
+    console.error("Detailed error fetching notifications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil notifikasi",
+      error: error.message
+    });
+  }
+});
+
+// Menandai notifikasi sebagai dibaca
+router.put("/notifications/:id/read", verifyToken, async (req, res) => {
+  try {
+    await Notification.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      { isRead: true }
+    );
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Notifikasi ditandai sebagai dibaca" 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Gagal menandai notifikasi" 
+    });
+  }
+});
+
+// Menandai semua notifikasi sebagai dibaca
+router.put("/notifications/read-all", verifyToken, async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { userId: req.user.id, isRead: false },
+      { isRead: true }
+    );
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Semua notifikasi ditandai sebagai dibaca" 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Gagal menandai semua notifikasi" 
+    });
+  }
+});
+
+// Menghapus notifikasi
+router.delete("/notifications/:id", verifyToken, async (req, res) => {
+  try {
+    const notification = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.id
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notifikasi tidak ditemukan"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Notifikasi berhasil dihapus"
+    });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menghapus notifikasi",
+      error: error.message
+    });
+  }
+});
+
+// Route untuk menghapus semua notifikasi
+router.delete("/notifications", verifyToken, async (req, res) => {
+  try {
+    // Hapus semua notifikasi untuk user yang sedang login
+    const result = await Notification.deleteMany({ 
+      userId: req.user.id 
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Semua notifikasi berhasil dihapus",
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error("Error deleting all notifications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menghapus notifikasi",
+      error: error.message
     });
   }
 });

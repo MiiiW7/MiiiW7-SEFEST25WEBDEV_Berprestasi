@@ -108,6 +108,7 @@ const Lomba = () => {
             image={getImageUrl(post.image)}
             category={post.categories}
             jenjangs={post.jenjangs}
+            pelaksanaan={post.pelaksanaan}
             creatorName={post.creator?.name || "Unknown"}
           />
           ))}

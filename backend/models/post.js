@@ -58,10 +58,15 @@ const postSchema = new mongoose.Schema(
       type: String, 
       ref: "User" ,
     }],
+    pelaksanaan: {
+      type: Date,
+      required: true
+    },
     status: {
       type: String,
-      enum: ["published", "draft"],
-      default: "published",
+      enum: ["Belum Dilaksanakan", "Sedang Dilaksanakan","Telah Dilaksanakan"],
+      default: "Belum Dilaksanakan",
+      required: true
     },
   },
   {

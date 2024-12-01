@@ -160,6 +160,22 @@ const ProfilePenyelenggara = () => {
                             {post.category}
                           </span>
                         )}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <h6>Pelaksanaan:</h6>
+                      {/* Jika pelaksanaan adalah string tunggal */}
+                      {post.pelaksanaan && (
+                        <span className="bg-yellow-200 px-2 py-1 rounded-full text-sm">
+                          {new Date(post.pelaksanaan).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-sm text-gray-500">
                       Status: {post.status}
                     </span>
