@@ -6,6 +6,7 @@ import upload from "../multer.js";
 import Post from "../models/post.js";
 import { User } from "../models/user.js";
 import { verifyToken } from "../middleware/auth.js";
+import Notification from "../models/notification.js";
 
 const router = express.Router();
 
@@ -35,6 +36,7 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
       jenjangs: jenjangs,
       creator: req.user.id,
       pelaksanaan: new Date(req.body.pelaksanaan),
+      link: req.body.link || '',
       image: `/uploads/${req.file.filename}`,
       status: req.body.status || "Belum Dilaksanakan",
     });
@@ -168,7 +170,6 @@ router.get("/kategori/:category", async (req, res) => {
     const { category } = req.params;
     const posts = await Post.find({ 
       categories: category,
-      status: "published" 
     }).lean();
 
     const populatedPosts = await Promise.all(
@@ -200,7 +201,6 @@ router.get("/jenjang/:jenjang", async (req, res) => {
     const { jenjang } = req.params;
     const posts = await Post.find({ 
       jenjangs: jenjang,
-      status: "published" 
     }).lean();
 
     const populatedPosts = await Promise.all(
@@ -269,6 +269,7 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
       categories: categories, // Menggunakan categories yang sudah difilter
       jenjangs: jenjangs, // Menggunakan jenjangs yang sudah difilter
       pelaksanaan: new Date(req.body.pelaksanaan),
+      link: req.body.link || '',
       status: req.body.status
     };
 
@@ -348,43 +349,95 @@ router.delete("/:id", verifyToken, async (req, res) => {
 // Follow a post
 router.post("/:postId/follow", verifyToken, async (req, res) => {
   try {
+    // Pastikan hanya pendaftar yang bisa follow
+    if (req.user.role !== 'pendaftar') {
+      return res.status(403).json({ 
+        success: false,
+        message: "Hanya pendaftar yang dapat mengikuti lomba" 
+      });
+    }
+
+    // Cari user untuk mendapatkan nama
+    const user = await User.findOne({ id: req.user.id });
     const post = await Post.findOne({ id: req.params.postId });
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+
+    if (!user || !post) {
+      return res.status(404).json({ 
+        success: false,
+        message: "User atau Post tidak ditemukan" 
+      });
     }
 
+    // Cek apakah sudah follow
     if (post.followers.includes(req.user.id)) {
-      return res.status(400).json({ message: "Already following this post" });
+      return res.status(400).json({ 
+        success: false,
+        message: "Anda sudah mengikuti lomba ini" 
+      });
     }
 
+    // Tambahkan follower
     post.followers.push(req.user.id);
     await post.save();
 
-    res.status(200).json({ message: "Successfully followed the post" });
+    // Buat notifikasi untuk penyelenggara
+    const notification = new Notification({
+      userId: post.creator, // ID penyelenggara
+      postId: post.id,
+      message: `${user.name} mengikuti lomba ${post.title}`, 
+      type: 'follow',
+      isRead: false // Pastikan notifikasi baru belum dibaca
+    });
+    await notification.save();
+
+    res.status(200).json({ 
+      success: true,
+      message: "Berhasil mengikuti lomba" 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error following post", error: error.message });
+    console.error("Error following post:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Gagal mengikuti lomba",
+      error: error.message 
+    });
   }
 });
 
 // Unfollow a post
 router.post("/:postId/unfollow", verifyToken, async (req, res) => {
   try {
+    // Pastikan hanya pendaftar yang bisa unfollow
+    if (req.user.role !== 'pendaftar') {
+      return res.status(403).json({ 
+        success: false,
+        message: "Hanya pendaftar yang dapat berhenti mengikuti lomba" 
+      });
+    }
+
     const post = await Post.findOne({ id: req.params.postId });
     if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "Post tidak ditemukan" 
+      });
     }
 
-    const index = post.followers.indexOf(req.user.id);
-    if (index === -1) {
-      return res.status(400).json({ message: "Not following this post" });
-    }
-
-    post.followers.splice(index, 1);
+    // Hapus follower
+    post.followers = post.followers.filter(followerId => followerId !== req.user.id);
     await post.save();
 
-    res.status(200).json({ message: "Successfully unfollowed the post" });
+    res.status(200).json({ 
+      success: true,
+      message: "Berhasil berhenti mengikuti lomba" 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error unfollowing post", error: error.message });
+    console.error("Error unfollowing post:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Gagal berhenti mengikuti lomba",
+      error: error.message 
+    });
   }
 });
 
@@ -428,6 +481,46 @@ router.get('/check-status-manually', async (req, res) => {
     res.status(500).json({ 
       message: 'Error checking status', 
       error: error.message 
+    });
+  }
+});
+
+// Di postRoutes.js, tambahkan route baru
+router.get("/:postId/followers", verifyToken, async (req, res) => {
+  try {
+    // Pastikan hanya penyelenggara yang membuat post bisa melihat followers
+    const post = await Post.findOne({ id: req.params.postId });
+    
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post tidak ditemukan"
+      });
+    }
+
+    // Cek apakah user yang request adalah pembuat post
+    if (post.creator !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Anda tidak memiliki izin"
+      });
+    }
+
+    // Ambil detail followers
+    const followers = await User.find({ 
+      id: { $in: post.followers } 
+    }).select('id name email nomor');
+
+    res.status(200).json({
+      success: true,
+      data: followers
+    });
+  } catch (error) {
+    console.error("Error fetching followers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil daftar peserta",
+      error: error.message
     });
   }
 });

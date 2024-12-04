@@ -13,28 +13,73 @@ const Navbar = () => {
   const [jenjangTimeout, setJenjangTimeout] = useState(null);
   const { user, logout, checkAuth, token } = useAuth();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [
+    unreadPenyelenggaraNotifications,
+    setUnreadPenyelenggaraNotifications,
+  ] = useState(0);
 
+  // Fungsi untuk fetch notifikasi umum
   const fetchUnreadNotificationsCount = async () => {
-    if (!user || !token) return;
+    if (!user || !token || user.role !== "pendaftar") return;
 
     try {
       const response = await axios.get(
-        "http://localhost:9000/user/notifications", 
+        "http://localhost:9000/user/notifications",
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // Pastikan properti unreadCount sesuai dengan response dari backend
-      setUnreadNotifications(response.data.unreadCount || 0);
+      // Gunakan unreadCount dari response
+      setUnreadNotifications(response.data.unreadCount);
     } catch (error) {
-      console.error("Gagal mengambil jumlah notifikasi yang belum dibaca", error);
+      console.error(
+        "Gagal mengambil jumlah notifikasi yang belum dibaca",
+        error
+      );
     }
   };
 
-  // Ambil jumlah notifikasi yang belum dibaca saat komponen dimount dan user login
+  // Fungsi untuk fetch notifikasi penyelenggara
+  const fetchPenyelenggaraNotificationsCount = async () => {
+    if (!user || !token || user.role !== "penyelenggara") return;
+
+    try {
+      const response = await axios.get(
+        "http://localhost:9000/user/notifications/penyelenggara",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Gunakan unreadCount dari response
+      setUnreadPenyelenggaraNotifications(response.data.unreadCount);
+    } catch (error) {
+      console.error("Gagal mengambil jumlah notifikasi penyelenggara", error);
+    }
+  };
+
+  // Effect untuk fetch notifikasi saat komponen dimuat dan setiap interval
   useEffect(() => {
-    fetchUnreadNotificationsCount();
+    // Fungsi fetch notifikasi berdasarkan peran user
+    const fetchNotifications = () => {
+      if (user && token) {
+        if (user.role === "pendaftar") {
+          fetchUnreadNotificationsCount();
+        } else if (user.role === "penyelenggara") {
+          fetchPenyelenggaraNotificationsCount();
+        }
+      }
+    };
+
+    // Fetch notifikasi pertama kali
+    fetchNotifications();
+
+    // Set interval untuk fetch notifikasi setiap 30 detik
+    const intervalId = setInterval(fetchNotifications, 30000);
+
+    // Bersihkan interval saat komponen unmount
+    return () => clearInterval(intervalId);
   }, [user, token]);
 
   const categories = [
@@ -90,10 +135,10 @@ const Navbar = () => {
   }, [checkAuth]);
 
   return (
-    <div className="bg-white sticky top-0 left-0 w-full z-50 shadow-md">
+    <div className="bg-white sticky top-0 left-0 w-full z-50 shadow-sm py-1 text-sm">
       <nav className="flex justify-between items-center w-[92%] mx-auto">
         <div className="flex items-center">
-          <img src={logo} alt="Logo" width="60" className="mr-4" />
+          <img src={logo} alt="Logo" width="45" className="mr-4" />
         </div>
         <div className="fixed md:static md:min-h-fit min-h-[60vh] left-0 top-[-100%] md:w-auto w-full flex items-center px-5">
           <ul className="flex md:flex-row flex-col md:items-center md:gap-[4vw] gap-8 ">
@@ -172,19 +217,39 @@ const Navbar = () => {
             </li>
             <li className="">
               {/* Tambahkan link ke halaman notifikasi */}
-        {user && (
-          <Link 
-            to="/notifications" 
-            className="relative p-2 rounded-full hover:bg-gray-100"
-          >
-            Pemberitahuan
-            {unreadNotifications > 0 && (
-              <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
-                {unreadNotifications}
-              </span>
-            )}
-          </Link>
-        )}
+              {/* Notifikasi untuk pendaftar */}
+              {user && user.role === "pendaftar" && (
+                <li>
+                  <Link
+                    to="/notifications"
+                    className="relative p-2 rounded-full hover:bg-gray-100"
+                  >
+                    Pemberitahuan
+                    {unreadNotifications > 0 && (
+                      <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                        {unreadNotifications}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              )}
+
+              {/* Notifikasi untuk penyelenggara */}
+              {user && user.role === "penyelenggara" && (
+                <li>
+                  <Link
+                    to="/notifications-penyelenggara"
+                    className="relative p-2 rounded-full hover:bg-gray-100"
+                  >
+                    Pemberitahuan
+                    {unreadPenyelenggaraNotifications > 0 && (
+                      <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                        {unreadPenyelenggaraNotifications}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              )}
             </li>
           </ul>
         </div>
@@ -235,7 +300,7 @@ const Navbar = () => {
       </nav>
 
       {isOpen && (
-        <div className="py-4">
+        <div className="py-4 lg:hidden">
           <div className="flex flex-col gap-6 items-center">
             <Link to="/" className="w-80">
               <button className="bg-yellow-300 w-full py-2 rounded-full">
@@ -297,25 +362,35 @@ const Navbar = () => {
                 Lomba
               </button>
             </Link>
-            <Link to="/notif" className="w-80">
-              <button className="bg-yellow-300 w-full py-2 rounded-full">
-                Pemberitahuan
-              </button>
-            </Link>
+            {/* Notifikasi untuk pendaftar */}
+            {user && user.role === "pendaftar" && (
+              <Link to="/notifications" className="">
+                <button className="bg-yellow-300  py-2 rounded-full w-80">
+                  Pemberitahuan
+                  {unreadNotifications > 0 && (
+                    <button className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                      {unreadNotifications}
+                    </button>
+                  )}
+                </button>
+              </Link>
+            )}
+
+            {/* Notifikasi untuk penyelenggara */}
+            {user && user.role === "penyelenggara" && (
+              <Link to="/notifications-penyelenggara" className="">
+                <button className="bg-yellow-300  py-2 rounded-full w-80">
+                  Pemberitahuan
+                  {unreadPenyelenggaraNotifications > 0 && (
+                    <button className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                      {unreadPenyelenggaraNotifications}
+                    </button>
+                  )}
+                </button>
+              </Link>
+            )}
             {user && (
               <>
-                {user.role === "penyelenggara" && (
-                  <Link to="/create-post" className="w-80">
-                    <button className="bg-yellow-300 w-full py-2 rounded-full ">
-                      Buat Lomba
-                    </button>
-                  </Link>
-                )}
-                <Link to="/profile" className="w-80">
-                  <button className="bg-yellow-300 w-full py-2 rounded-full">
-                    Profile
-                  </button>
-                </Link>
                 <button
                   onClick={logout}
                   className="bg-red-500 text-white w-80 py-2 rounded-full"

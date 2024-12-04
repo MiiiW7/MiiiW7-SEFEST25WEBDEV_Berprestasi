@@ -14,6 +14,9 @@ const DetailPost = () => {
   const [isFollowed, setIsFollowed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [followers, setFollowers] = useState([]);
+  const [showFollowers, setShowFollowers] = useState(false);
+
 
   const BACKEND_URL = "http://localhost:9000";
 
@@ -51,6 +54,23 @@ const DetailPost = () => {
     fetchPostDetail();
   }, [id, user, token]);
 
+  // Tambahkan fungsi untuk mengambil daftar followers
+  const fetchFollowers = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/post/${id}/followers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(response)
+
+      if (response.data.success) {
+        setFollowers(response.data.data);
+        console.log(response.data.data)
+      }
+    } catch (error) {
+      console.error("Error fetching followers:", error);
+    }
+  };
+
   // Format tanggal
   const formatTanggal = (tanggal) => {
     if (!tanggal) return "Tanggal tidak tersedia";
@@ -67,27 +87,40 @@ const DetailPost = () => {
     if (imagePath.startsWith("http")) return imagePath;
     return `${BACKEND_URL}${imagePath}`;
   };
+  
+const handleFollow = async () => {
+  if (!user) {
+    window.location.href = "/login";
+    return;
+  }
 
-  const handleFollow = async () => {
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
-
-    try {
-      const endpoint = isFollowed ? "unfollow" : "follow";
-      await axios.post(
-        `${BACKEND_URL}/post/${id}/${endpoint}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  try {
+    const endpoint = isFollowed ? "unfollow" : "follow";
+    const response = await axios.post(
+      `${BACKEND_URL}/post/${id}/${endpoint}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    
+    // Gunakan response dari backend
+    if (response.data.success) {
       setIsFollowed(!isFollowed);
-    } catch (error) {
-      console.error("Error following/unfollowing post:", error);
+      // Optional: Tampilkan pesan sukses
+      alert(response.data.message);
     }
-  };
+  } catch (error) {
+    console.error("Detailed error following/unfollowing post:", error.response);
+    
+    // Tampilkan pesan error dari backend atau pesan default
+    const errorMessage = 
+      error.response?.data?.message || 
+      "Gagal mengikuti/berhenti mengikuti lomba. Silakan coba lagi.";
+    
+    alert(errorMessage);
+  }
+};
 
   const handleBack = () => {
     navigate(-1); // Kembali ke halaman sebelumnya
@@ -232,6 +265,48 @@ const DetailPost = () => {
           >
             {isFollowed ? "Unfollow" : "Follow"}
           </button>
+        )}
+
+        {/* Tambahkan section untuk followers jika user adalah penyelenggara */}
+        {user && user.role === 'penyelenggara' && (
+          <div className="mt-6">
+            <button 
+              onClick={() => {
+                fetchFollowers();
+                setShowFollowers(!showFollowers);
+              }}
+              className="bg-yellow-500 text-white px-4 py-2 rounded"
+            >
+              {showFollowers ? 'Sembunyikan' : 'Lihat Peserta'} 
+              <span className="ml-2 bg-white text-yellow-500 px-2 rounded-full">
+                {post.followers?.length || 0}
+              </span>
+            </button>
+
+            {showFollowers && (
+              <div className="mt-4 bg-white shadow rounded-lg p-4">
+                <h3 className="text-lg font-bold mb-4">Daftar Peserta</h3>
+                {followers.length === 0 ? (
+                  <p className="text-gray-500">Belum ada peserta</p>
+                ) : (
+                  <div className="space-y-2">
+                    {followers.map((follower) => (
+                      <div 
+                        key={follower.id} 
+                        className="border-b pb-2 last:border-b-0 flex justify-between items-center"
+                      >
+                        <div>
+                          <p className="font-semibold">{follower.name}</p>
+                          <p className="text-sm text-gray-500">{follower.email}</p>
+                          <p className="text-sm text-gray-500">{follower.nomor}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
       <Footer />

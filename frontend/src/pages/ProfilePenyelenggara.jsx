@@ -96,7 +96,7 @@ const ProfilePenyelenggara = () => {
         </div>
 
         {/* Posts Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-6 ">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">
               Daftar Lomba Yang Diselenggarakan
@@ -127,44 +127,65 @@ const ProfilePenyelenggara = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:w-[500px] md:w-[700px] lg:w-[900px] xl:w-[1200px]">
             {posts.map((post) => (
               <div
                 key={post.id}
-                className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center border rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
-                <img
-                  src={getImageUrl(post.image)}
-                  alt={post.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-2">{post.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">
-                    {post.description.length > 100
-                      ? `${post.description.substring(0, 100)}...`
-                      : post.description}
-                  </p>
-                  <div className="flex items-center mt-4">
-                    {Array.isArray(post.categories)
-                      ? post.categories.map((category, index) => (
-                          <span
-                            key={index}
-                            className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
-                          >
-                            {category}
-                          </span>
-                        ))
-                      : post.category && (
-                          <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-                            {post.category}
-                          </span>
-                        )}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <h6>Pelaksanaan:</h6>
+                <div className="w-1/2">
+                  <img
+                    src={getImageUrl(post.image)}
+                    alt={post.title}
+                    className="relative h-full object-contain rounded-lg"
+                  />
+                </div>
+                <div className="flex flex-col p-4 w-1/2 h-full">
+                  <div className="mb-4">
+                    <h3 className="font-bold text-lg mb-2">{post.title}</h3>
+                    <p className="text-gray-700 text-xs line-clamp-3 mb-2">
+                      {post.description.length > 100
+                        ? `${post.description.substring(0, 100)}...`
+                        : post.description}
+                    </p>
+                  </div>
+                  <div className="mt-auto">
+                    <div className="flex flex-wrap gap-2 mb-2 line-clamp-2">
+                      {Array.isArray(post.categories)
+                        ? post.categories.map((category, index) => (
+                            <span
+                              key={index}
+                              className=" bg-gray-200 px-2 py-1 rounded-full text-xs"
+                            >
+                              {category}
+                            </span>
+                          ))
+                        : post.category && (
+                            <span className="inline-block bg-gray-200 rounded-full text-sm font-semibold text-gray-700">
+                              {post.category}
+                            </span>
+                          )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {post.jenjangs?.map((jenjang, index) => (
+                        <span
+                          key={index}
+                          className="bg-yellow-200 px-2 py-1 rounded-full text-xs"
+                        >
+                          {" "}
+                          {jenjang}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-xs mt-2">
+                      <a>
+                        Diikuti sebanyak: {post.followers?.length || 0} user
+                      </a>
+                    </div>
+                    <div className="mb-2">
                       {/* Jika pelaksanaan adalah string tunggal */}
                       {post.pelaksanaan && (
-                        <span className="bg-yellow-200 px-2 py-1 rounded-full text-sm">
+                        <span className=" rounded-full text-xs">
                           {new Date(post.pelaksanaan).toLocaleDateString(
                             "id-ID",
                             {
@@ -176,33 +197,34 @@ const ProfilePenyelenggara = () => {
                         </span>
                       )}
                     </div>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 mb-2">
                       Status: {post.status}
                     </span>
-                  </div>
-                  <div className="mt-4 flex justify-end gap-2">
-                    <button
-                      onClick={() =>
-                        (window.location.href = `/edit-post/${post.id}`)
-                      }
-                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Apakah Anda yakin ingin menghapus lomba ini?"
-                          )
-                        ) {
-                          deletePost(post.id);
+
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button
+                        onClick={() =>
+                          (window.location.href = `/edit-post/${post.id}`)
                         }
-                      }}
-                      className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
-                    >
-                      Hapus
-                    </button>
+                        className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Apakah Anda yakin ingin menghapus lomba ini?"
+                            )
+                          ) {
+                            deletePost(post.id);
+                          }
+                        }}
+                        className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

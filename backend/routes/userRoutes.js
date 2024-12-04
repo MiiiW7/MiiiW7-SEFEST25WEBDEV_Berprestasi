@@ -84,9 +84,14 @@ router.post("/auth/login", async (req, res) => {
       });
     }
 
-    // Generate JWT token
+    // Generate JWT token dengan informasi lengkap
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { 
+        id: user.id, 
+        name: user.name,
+        email: user.email,
+        role: user.role
+      },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -259,53 +264,37 @@ router.get("/followed-posts", verifyToken, async (req, res) => {
 // Mendapatkan semua notifikasi
 router.get("/notifications", verifyToken, async (req, res) => {
   try {
-    // Cari notifikasi berdasarkan userId
     const notifications = await Notification.find({ 
       userId: req.user.id 
-    }).sort({ createdAt: -1 }); // Urutkan dari yang terbaru
+    }).sort({ createdAt: -1 });
 
-    // Proses populate manual
     const populatedNotifications = await Promise.all(
       notifications.map(async (notification) => {
-        try {
-          // Cari post berdasarkan ID (bukan ObjectId)
-          const post = await Post.findOne({ id: notification.postId });
-          
-          return {
-            _id: notification._id,
-            userId: notification.userId,
-            postId: post ? {
-              id: post.id,
-              title: post.title,
-              image: post.image,
-              pelaksanaan: post.pelaksanaan,
-              status: post.status
-            } : null,
-            message: notification.message,
-            type: notification.type,
-            isRead: notification.isRead,
-            createdAt: notification.createdAt
-          };
-        } catch (postError) {
-          console.error('Error finding post for notification:', postError);
-          return null;
-        }
+        const post = await Post.findOne({ id: notification.postId });
+        
+        return {
+          _id: notification._id,
+          message: notification.message,
+          postId: post ? {
+            id: post.id,
+            title: post.title
+          } : null,
+          isRead: notification.isRead,
+          createdAt: notification.createdAt
+        };
       })
     );
 
-    // Filter notifikasi yang valid
-    const validNotifications = populatedNotifications.filter(n => n !== null);
-
     // Hitung jumlah notifikasi yang belum dibaca
-    const unreadCount = validNotifications.filter(n => !n.isRead).length;
+    const unreadCount = populatedNotifications.filter(n => !n.isRead).length;
 
     res.status(200).json({
       success: true,
-      data: validNotifications,
+      data: populatedNotifications,
       unreadCount: unreadCount
     });
   } catch (error) {
-    console.error("Detailed error fetching notifications:", error);
+    console.error("Error fetching notifications:", error);
     res.status(500).json({
       success: false,
       message: "Gagal mengambil notifikasi",
@@ -314,42 +303,29 @@ router.get("/notifications", verifyToken, async (req, res) => {
   }
 });
 
-// Menandai notifikasi sebagai dibaca
-router.put("/notifications/:id/read", verifyToken, async (req, res) => {
-  try {
-    await Notification.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
-      { isRead: true }
-    );
-
-    res.status(200).json({ 
-      success: true, 
-      message: "Notifikasi ditandai sebagai dibaca" 
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Gagal menandai notifikasi" 
-    });
-  }
-});
-
 // Menandai semua notifikasi sebagai dibaca
-router.put("/notifications/read-all", verifyToken, async (req, res) => {
+router.put("/notifications/mark-all-read", verifyToken, async (req, res) => {
   try {
     await Notification.updateMany(
-      { userId: req.user.id, isRead: false },
-      { isRead: true }
+      { 
+        userId: req.user.id, 
+        isRead: false 
+      }, 
+      { 
+        isRead: true 
+      }
     );
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Semua notifikasi ditandai sebagai dibaca" 
+    res.status(200).json({
+      success: true,
+      message: "Semua notifikasi telah ditandai sebagai dibaca"
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Gagal menandai semua notifikasi" 
+    console.error("Error marking notifications as read:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menandai notifikasi",
+      error: error.message
     });
   }
 });
@@ -358,7 +334,7 @@ router.put("/notifications/read-all", verifyToken, async (req, res) => {
 router.delete("/notifications/:id", verifyToken, async (req, res) => {
   try {
     const notification = await Notification.findOneAndDelete({
-      _id: req.params.id,
+      id: req.params.id,
       userId: req.user.id
     });
 
@@ -401,6 +377,152 @@ router.delete("/notifications", verifyToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Gagal menghapus notifikasi",
+      error: error.message
+    });
+  }
+});
+
+// Route untuk notifikasi penyelenggara
+router.get('/notifications/penyelenggara', verifyToken, async (req, res) => {
+  try {
+    // Pastikan hanya penyelenggara yang bisa mengakses
+    if (req.user.role !== 'penyelenggara') {
+      return res.status(403).json({
+        success: false,
+        message: 'Akses ditolak'
+      });
+    }
+
+    // Cari post milik penyelenggara
+    const posts = await Post.find({ creator: req.user.id });
+    const postIds = posts.map(post => post.id);
+
+    // Cari notifikasi yang terkait dengan post milik penyelenggara
+    const notifications = await Notification.find({
+      type: 'follow',
+      postId: { $in: postIds }
+    }).sort({ createdAt: -1 });
+
+    // Populate notifikasi dengan detail post dan user
+    const populatedNotifications = await Promise.all(
+      notifications.map(async (notification) => {
+        const post = await Post.findOne({ id: notification.postId });
+        const follower = await User.findOne({ id: notification.userId });
+
+        return {
+          _id: notification._id,
+          message: notification.message,
+          isRead: notification.isRead, // Tambahkan status isRead
+          post: {
+            id: post.id,
+            title: post.title,
+            image: post.image
+          },
+          follower: {
+            id: follower.id,
+            name: follower.name,
+            email: follower.email
+          },
+          createdAt: notification.createdAt
+        };
+      })
+    );
+
+    // Hitung jumlah notifikasi yang belum dibaca
+    const unreadCount = populatedNotifications.filter(n => !n.isRead).length;
+
+    res.status(200).json({
+      success: true,
+      data: populatedNotifications,
+      unreadCount: unreadCount
+    });
+  } catch (error) {
+    console.error('Error fetching penyelenggara notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil notifikasi'
+    });
+  }
+});
+
+router.put('/notifications/penyelenggara/mark-all-read', verifyToken, async (req, res) => {
+  try {
+    // Pastikan hanya penyelenggara yang bisa mengakses
+    if (req.user.role !== 'penyelenggara') {
+      return res.status(403).json({
+        success: false,
+        message: 'Akses ditolak'
+      });
+    }
+
+    // Cari post milik penyelenggara
+    const posts = await Post.find({ creator: req.user.id });
+    const postIds = posts.map(post => post.id);
+
+    // Update semua notifikasi follow untuk post milik penyelenggara
+    await Notification.updateMany(
+      {
+        type: 'follow',
+        postId: { $in: postIds },
+        isRead: false
+      },
+      { 
+        isRead: true 
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Semua notifikasi telah ditandai sebagai dibaca"
+    });
+  } catch (error) {
+    console.error("Error marking penyelenggara notifications as read:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menandai notifikasi",
+      error: error.message
+    });
+  }
+});
+
+// Route untuk menghapus notifikasi penyelenggara spesifik
+router.delete('/notifications/penyelenggara/:id', verifyToken, async (req, res) => {
+  try {
+    // Pastikan hanya penyelenggara yang bisa mengakses
+    if (req.user.role !== 'penyelenggara') {
+      return res.status(403).json({
+        success: false,
+        message: 'Akses ditolak'
+      });
+    }
+
+    // Cari post milik penyelenggara
+    const posts = await Post.find({ creator: req.user.id });
+    const postIds = posts.map(post => post.id);
+
+    // Hapus notifikasi
+    const notification = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      type: 'follow',
+      postId: { $in: postIds }
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notifikasi tidak ditemukan'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Notifikasi berhasil dihapus'
+    });
+  } catch (error) {
+    console.error('Error deleting penyelenggara notification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menghapus notifikasi',
       error: error.message
     });
   }

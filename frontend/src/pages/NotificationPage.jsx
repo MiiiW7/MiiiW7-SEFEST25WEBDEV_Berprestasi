@@ -27,12 +27,32 @@ const NotificationPage = () => {
     }
   };
 
-  const deleteNotification = async (id) => {
+   // Fungsi baru untuk menandai semua notifikasi sebagai dibaca
+   const markAllNotificationsAsRead = async () => {
     try {
-      await axios.delete(`${BACKEND_URL}/user/notifications/${id}`, {
+      await axios.put(
+        `${BACKEND_URL}/user/notifications/mark-all-read`, 
+        {}, 
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      
+      // Refresh notifikasi setelah ditandai
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+    }
+  };
+
+  // Fungsi untuk menghapus notifikasi spesifik
+  const deleteNotification = async (notificationId) => {
+    try {
+      await axios.delete(`${BACKEND_URL}/user/notifications/penyelenggara/${notificationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Refresh notifications after deletion
+      
+      // Refresh notifikasi setelah dihapus
       fetchNotifications();
     } catch (error) {
       console.error("Error deleting notification:", error);
@@ -55,6 +75,9 @@ const NotificationPage = () => {
 
   useEffect(() => {
     fetchNotifications();
+    if (user && token) {
+      markAllNotificationsAsRead();
+    }
   }, [user, token]);
 
   const formatDate = (dateString) => {

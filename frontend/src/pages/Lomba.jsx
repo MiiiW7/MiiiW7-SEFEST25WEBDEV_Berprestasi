@@ -35,23 +35,23 @@ const Lomba = () => {
           response = await axios.get(`${BACKEND_URL}/user/followed-posts`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          console.log(response)
+          console.log(response);
         } else if (user.role === "penyelenggara") {
           // Untuk penyelenggara, ambil lomba yang dibuat
           response = await axios.get(`${BACKEND_URL}/post/user/${user.id}`, {
-            headers: { 
+            headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
             },
           });
+
+          console.log(response);
         }
 
         setPosts(response.data.data);
       } catch (error) {
         console.error("Error fetching posts:", error);
-        setError(
-          error.response?.data?.message || "Gagal mengambil data lomba"
-        );
+        setError(error.response?.data?.message || "Gagal mengambil data lomba");
       } finally {
         setIsLoading(false);
       }
@@ -72,9 +72,9 @@ const Lomba = () => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">
-          {user.role === "pendaftar" 
-            ? "Lomba yang Diikuti" 
+        <h1 className="text-xl font-bold mb-6">
+          {user.role === "pendaftar"
+            ? "Lomba yang Diikuti"
             : "Lomba yang Dibuat"}
         </h1>
 
@@ -98,20 +98,22 @@ const Lomba = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((post) => (
-            <Post
-            key={post._id}
-            id={post.id}
-            title={post.title}
-            description={post.description}
-            image={getImageUrl(post.image)}
-            category={post.categories}
-            jenjangs={post.jenjangs}
-            pelaksanaan={post.pelaksanaan}
-            creatorName={post.creator?.name || "Unknown"}
-          />
-          ))}
+        <div className="justify-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:w-[400px] md:w-[800px] lg:w-[800px] xl:w-[1000px]">
+            {posts.map((post) => (
+              <Post
+                key={post._id}
+                id={post.id}
+                title={post.title}
+                description={post.description}
+                image={getImageUrl(post.image)}
+                categories={post.categories}
+                jenjangs={post.jenjangs}
+                pelaksanaan={post.pelaksanaan}
+                creatorName={post.creator?.name || "Unknown"}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

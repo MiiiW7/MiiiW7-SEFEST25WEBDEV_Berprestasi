@@ -165,8 +165,7 @@ const ProfilePendaftar = () => {
         </div>
 
         {/* Followed Posts Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold mb-4">Daftar Lomba yang Diikuti</h2>
+          <h2 className="text-xl font-bold mx-4 my-4">Daftar Lomba yang Diikuti</h2>
 
           {isLoading && (
             <div className="flex justify-center items-center py-8">
@@ -180,90 +179,97 @@ const ProfilePendaftar = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {followedPosts.map((post) => (
-              <div
-                key={post.id}
-                className="flex border rounded-lg shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Link to={`/post/${post.id}`} className="">
-                  <img
-                    src={getImageUrl(post.image)}
-                    alt={post.title}
-                    className="w-full h-full object-contain rounded-xl"
-                  />
-                </Link>
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-2">{post.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">
-                    {post.description.length > 100
-                      ? `${post.description.substring(0, 100)}...`
-                      : post.description}
-                  </p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {post.categories?.map((category, index) => (
-                      <span
-                        key={index}
-                        className="bg-gray-200 px-2 py-1 rounded-full text-sm"
-                      >
-                        {" "}
-                        {category}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {post.jenjangs?.map((jenjang, index) => (
-                      <span
-                        key={index}
-                        className="bg-yellow-200 px-2 py-1 rounded-full text-sm"
-                      >
-                        {" "}
-                        {jenjang}
-                      </span>
-                    ))}
-                  </div>
-                  {/* Perbaikan untuk pelaksanaan */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <h6>Pelaksanaan:</h6>
-                    {/* Jika pelaksanaan adalah string tunggal */}
-                    {post.pelaksanaan && (
-                      <span className="bg-yellow-200 px-2 py-1 rounded-full text-sm">
-                        {new Date(post.pelaksanaan).toLocaleDateString(
-                          "id-ID",
-                          {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-500 mb-4">
-                    Created By: {post.creator?.name || "Unknown"}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <Link
-                      to={`/post/${post.id}`}
-                      className="text-yellow-600 hover:text-yellow-700 text-sm"
-                    >
-                      Lihat Detail
+          {/* Display followed posts */}
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:w-[500px] md:w-[700px] lg:w-[900px] xl:w-[1200px]">
+              {followedPosts.map((post) => (
+                <div
+                  key={post.id}
+                  className="flex items-center border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="w-1/2">
+                    <Link to={`/post/${post.id}`} className="w-full h-full">
+                      <img
+                        src={getImageUrl(post.image)}
+                        alt={post.title}
+                        className="relative w-full h-full object-contain rounded-xl"
+                      />
                     </Link>
-                    <button
-                      onClick={() => handleUnfollow(post.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
-                    >
-                      Unfollow
-                    </button>
+                  </div>
+
+                  <div className="flex flex-col p-4 w-1/2 h-full">
+                    <div className="mb-4">
+                      <h3 className="font-bold text-lg mb-2">{post.title}</h3>
+                      <p className="text-gray-600 text-xs mb-2 line-clamp-2">
+                        {post.description.length > 100
+                          ? `${post.description.substring(0, 100)}...`
+                          : post.description}
+                      </p>
+                    </div>
+                    <div className="mt-auto">
+                      <div className="flex flex-wrap gap-2 mb-4 line-clamp-2">
+                        {post.categories?.map((category, index) => (
+                          <span
+                            key={index}
+                            className="bg-gray-200 px-2 py-1 rounded-full text-xs"
+                          >
+                            {" "}
+                            {category}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {post.jenjangs?.map((jenjang, index) => (
+                          <span
+                            key={index}
+                            className="bg-yellow-200 px-2 py-1 rounded-full text-xs"
+                          >
+                            {" "}
+                            {jenjang}
+                          </span>
+                        ))}
+                      </div>
+                      {/* Perbaikan untuk pelaksanaan */}
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {/* Jika pelaksanaan adalah string tunggal */}
+                        {post.pelaksanaan && (
+                          <span className="bg-yellow-200 px-2 py-1 rounded-full text-xs">
+                            {new Date(post.pelaksanaan).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              }
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mb-2">
+                        Created By: {post.creator?.name || "Unknown"}
+                      </div>
+                      <div className="flex justify-start items-center gap-4">
+                        <Link
+                          to={`/post/${post.id}`}
+                          className="text-yellow-600 hover:text-yellow-700 text-sm"
+                        >
+                          Lihat Detail
+                        </Link>
+                        <button
+                          onClick={() => handleUnfollow(post.id)}
+                          className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                        >
+                          Unfollow
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
           {!isLoading && !error && followedPosts.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">
+              <p className="text-gray-500 mb-2">
                 Anda belum mengikuti lomba apapun.
               </p>
               <Link
@@ -277,7 +283,7 @@ const ProfilePendaftar = () => {
         </div>
 
         {/* Navigation Section */}
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex justify-center mb-4">
           <Link
             to="/"
             className="text-yellow-600 hover:text-yellow-700 flex items-center gap-2"
@@ -307,7 +313,6 @@ const ProfilePendaftar = () => {
             </div>
           </div>
         )}
-      </div>
       <Footer />
     </>
   );

@@ -38,14 +38,7 @@ const postSchema = new mongoose.Schema(
     jenjangs: [
       {
         type: String,
-        enum: [
-          "SD",
-          "SMP",
-          "SMA",
-          "SMK",
-          "Mahasiswa",
-          "Umum",
-        ],
+        enum: ["SD", "SMP", "SMA", "SMK", "Mahasiswa", "Umum"],
         required: true,
       },
     ],
@@ -54,19 +47,34 @@ const postSchema = new mongoose.Schema(
       required: true,
       ref: "User",
     },
-    followers: [{ 
-      type: String, 
-      ref: "User" ,
-    }],
+    followers: [
+      {
+        type: String,
+        ref: "User",
+      },
+    ],
     pelaksanaan: {
       type: Date,
-      required: true
+      required: true,
+    },
+    linkPendaftaran: {
+      type: String,
+      required: true, // Opsional
+      validate: {
+        validator: function (v) {
+          // Validasi URL (opsional)
+          return /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(
+            v
+          );
+        },
+        message: (props) => `${props.value} bukan URL yang valid!`,
+      },
     },
     status: {
       type: String,
-      enum: ["Belum Dilaksanakan", "Sedang Dilaksanakan","Telah Dilaksanakan"],
+      enum: ["Belum Dilaksanakan", "Sedang Dilaksanakan", "Telah Dilaksanakan"],
       default: "Belum Dilaksanakan",
-      required: true
+      required: true,
     },
   },
   {

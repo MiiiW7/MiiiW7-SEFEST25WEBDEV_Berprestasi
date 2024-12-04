@@ -12,6 +12,7 @@ import JenjangPage from "./pages/JenjangPage";
 import EditPost from "./pages/EditPost";
 import Lomba from "./pages/Lomba";
 import NotificationPage from "./pages/NotificationPage";
+import NotificationPenyelenggara from "./pages/NotificationPenyelenggara";
 
 const App = () => {
   return (
@@ -55,12 +56,15 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route 
-        path="/notifications" 
-        element={
-            <NotificationPage />
-        } 
-      />
+        <Route path="/notifications" element={<NotificationPage />} />
+        <Route
+          path="/notifications-penyelenggara"
+          element={
+            <ProtectedRoute roles={["penyelenggara"]}>
+              <NotificationPenyelenggara />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </AuthProvider>
   );

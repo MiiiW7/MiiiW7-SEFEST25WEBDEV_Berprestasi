@@ -49,10 +49,10 @@ const JenjangPage = () => {
       <Navbar />
       <div className="min-h-screen bg-gray-100">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-6">
+          <h1 className="text-xl font-bold mb-6">
             Lomba Kategori: {jenjang}
           </h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:w-[400px] md:w-[800px] lg:w-[800px] xl:w-[1000px]">
             {posts.map((post) => (
               <Post
                 key={post._id}
@@ -60,15 +60,16 @@ const JenjangPage = () => {
                 title={post.title}
                 description={post.description}
                 image={getImageUrl(post.image)}
-                category={post.categories}
+                categories={post.categories}
                 jenjangs={post.jenjangs}
+                pelaksanaan={post.pelaksanaan}
                 creatorName={post.creator?.name}
               />
             ))}
           </div>
           {posts.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              Tidak ada lomba dalam kategori ini
+              Tidak ada lomba dalam Jenjang ini
             </div>
           )}
         </div>

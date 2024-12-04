@@ -88,7 +88,7 @@ const Post = ({
           </h2>
 
           {/* Deskripsi */}
-          <p className="text-gray-700 text-base line-clamp-4 mb-2 ">
+          <p className="text-gray-700 text-sm line-clamp-4 mb-2 ">
             {description}
           </p>
 
@@ -99,7 +99,7 @@ const Post = ({
                 <img
                   src="/default-avatar.png"
                   alt={creatorName || "Unknown Creator"}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                  className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
                 />
               </div>
               <div>
@@ -117,7 +117,7 @@ const Post = ({
                     key={index}
                     className={`
                   text-xs px-2.5 py-1 rounded-full font-medium 
-                  border transition-all duration-300
+                  border transition-all duration-300 
                   ${getCategoryColor(category)}
                 `}
                   >
@@ -140,11 +140,11 @@ const Post = ({
             </div>
 
             {/* Tambahkan informasi tanggal dan status */}
-            <div className="p-4">
+            <div className="mt-2 pl-1">
               <div className="flex justify-between items-center mb-2">
                 <div>
-                  <p className="text-sm text-gray-600">
-                    Tanggal Pelaksanaan: {formatTanggal(pelaksanaan)}
+                  <p className="text-xs text-gray-600">
+                    {formatTanggal(pelaksanaan)}
                   </p>
                 </div>
               </div>

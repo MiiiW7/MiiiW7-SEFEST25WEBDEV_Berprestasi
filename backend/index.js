@@ -41,6 +41,8 @@ app.use('/notifications', notificationRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  console.log(`Received ${req.method} request to ${req.path}`);
+  console.log('Headers:', req.headers);
   res.status(500).send('Something broke!');
 });
 
