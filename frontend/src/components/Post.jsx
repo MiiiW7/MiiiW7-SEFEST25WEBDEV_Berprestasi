@@ -27,6 +27,7 @@ const Post = ({
   jenjangs,
   pelaksanaan,
   creatorName,
+  profilePicture,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [aspectRatio, setAspectRatio] = useState("56.25%");
@@ -38,6 +39,33 @@ const Post = ({
       month: "long",
       year: "numeric",
     });
+  };
+
+  // Fungsi untuk mendapatkan URL profile picture
+  const getProfilePictureUrl = () => {
+    console.log("Profile Picture Input:", profilePicture);
+  
+    // Jika tidak ada profile picture atau undefined
+    if (!profilePicture || profilePicture === 'undefined') {
+      console.log("No profile picture, using default");
+      return '/default-avatar.png';
+    }
+    
+    // Jika profilePicture adalah path relatif dari backend
+    if (typeof profilePicture === 'string') {
+      if (profilePicture.startsWith('/uploads')) {
+        const fullUrl = `http://localhost:9000${profilePicture}`;
+        console.log("Constructed Full URL:", fullUrl);
+        return fullUrl;
+      }
+      
+      // Jika sudah full URL
+      console.log("Using profile picture as is:", profilePicture);
+      return profilePicture;
+    }
+  
+    console.log("Unexpected profile picture format");
+    return '/default-avatar.png';
   };
 
   const handleImageLoad = (e) => {
@@ -97,9 +125,12 @@ const Post = ({
             <div className="flex items-center mb-4">
               <div className="mr-2">
                 <img
-                  src="/default-avatar.png"
+                  src={getProfilePictureUrl()}
                   alt={creatorName || "Unknown Creator"}
                   className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                  onError={(e) => {
+                    e.target.src = "/default-avatar.png";
+                  }}
                 />
               </div>
               <div>

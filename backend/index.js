@@ -38,6 +38,9 @@ app.use('/user', userRoutes);
 // Route Notif
 app.use('/notifications', notificationRoutes);
 
+app.use('/uploads/posts', express.static(path.join(__dirname, 'uploads', 'posts')));
+app.use('/uploads/profiles', express.static(path.join(__dirname, 'uploads', 'profiles')));
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

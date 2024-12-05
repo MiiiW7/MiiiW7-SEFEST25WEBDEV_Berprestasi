@@ -2,7 +2,7 @@ import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import fs from "fs";
-import upload from "../multer.js";
+import { uploadPost } from "../multer.js";
 import Post from "../models/post.js";
 import { User } from "../models/user.js";
 import { verifyToken } from "../middleware/auth.js";
@@ -20,7 +20,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // CREATE - Membuat post baru
-router.post("/", verifyToken, upload.single("image"), async (req, res) => {
+router.post("/", verifyToken, uploadPost.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
@@ -36,8 +36,8 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
       jenjangs: jenjangs,
       creator: req.user.id,
       pelaksanaan: new Date(req.body.pelaksanaan),
-      link: req.body.link || '',
-      image: `/uploads/${req.file.filename}`,
+      link: req.body.link || "",
+      image: `/uploads/posts/${req.file.filename}`,
       status: req.body.status || "Belum Dilaksanakan",
     });
 
@@ -66,10 +66,19 @@ router.get("/", async (req, res) => {
         let creator = null;
         if (post.creator) {
           creator = await User.findOne({ id: post.creator }).lean();
+          console.log("Creator Data:", {
+            id: creator.id,
+            name: creator.name,
+            profilePicture: creator.profilePicture || '/uploads/profiles/default-avatar.png'
+          });
         }
         return {
           ...post,
-          creator: creator ? { id: creator.id, name: creator.name } : null,
+          creator: creator ? { 
+            id: creator.id, 
+            name: creator.name,
+            profilePicture: creator.profilePicture || '/uploads/profiles/default-avatar.png'
+          } : null,
         };
       })
     );
@@ -130,18 +139,21 @@ router.get("/user/:userId", verifyToken, async (req, res) => {
     const { userId } = req.params;
 
     // Verifikasi akses berdasarkan peran
-    if (req.user.id !== userId && req.user.role !== 'admin') {
-      if (req.user.role === 'pendaftar') {
+    if (req.user.id !== userId && req.user.role !== "admin") {
+      if (req.user.role === "pendaftar") {
         // Pendaftar hanya bisa melihat post yang dipublish
-        const publishedPosts = await Post.find({ creator: userId, status: 'published' });
+        const publishedPosts = await Post.find({
+          creator: userId,
+          status: "published",
+        });
         return res.status(200).json({
           success: true,
-          data: publishedPosts
+          data: publishedPosts,
         });
-      } else if (req.user.role !== 'penyelenggara') {
+      } else if (req.user.role !== "penyelenggara") {
         return res.status(403).json({
           success: false,
-          message: "Anda tidak memiliki izin untuk mengakses post ini"
+          message: "Anda tidak memiliki izin untuk mengakses post ini",
         });
       }
     }
@@ -151,15 +163,14 @@ router.get("/user/:userId", verifyToken, async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: posts
+      data: posts,
     });
-
   } catch (error) {
     console.error("Error in /user/:userId:", error);
     res.status(500).json({
       success: false,
       message: "Terjadi kesalahan saat mengambil post",
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -168,7 +179,7 @@ router.get("/user/:userId", verifyToken, async (req, res) => {
 router.get("/kategori/:category", async (req, res) => {
   try {
     const { category } = req.params;
-    const posts = await Post.find({ 
+    const posts = await Post.find({
       categories: category,
     }).lean();
 
@@ -199,7 +210,7 @@ router.get("/kategori/:category", async (req, res) => {
 router.get("/jenjang/:jenjang", async (req, res) => {
   try {
     const { jenjang } = req.params;
-    const posts = await Post.find({ 
+    const posts = await Post.find({
       jenjangs: jenjang,
     }).lean();
 
@@ -227,22 +238,29 @@ router.get("/jenjang/:jenjang", async (req, res) => {
 });
 
 // UPDATE - Memperbarui post berdasarkan ID
-router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
+router.put("/:id", verifyToken, uploadPost.single("image"), async (req, res) => {
   try {
     let categories;
     try {
       // Parse categories dan ambil array yang unik (tidak duplikat)
       const parsedCategories = JSON.parse(req.body.categories);
       // Filter hanya kategori yang valid (tidak terpecah menjadi karakter)
-      categories = parsedCategories.filter(cat => 
-        ['Matematika', 'Sains', 'Bahasa', 'Seni', 'Olahraga', 'Teknologi'].includes(cat)
+      categories = parsedCategories.filter((cat) =>
+        [
+          "Matematika",
+          "Sains",
+          "Bahasa",
+          "Seni",
+          "Olahraga",
+          "Teknologi",
+        ].includes(cat)
       );
     } catch (parseError) {
       console.error("Error parsing categories:", parseError);
       return res.status(400).json({
         success: false,
         message: "Format kategori tidak valid",
-        error: parseError.message
+        error: parseError.message,
       });
     }
 
@@ -251,15 +269,15 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
       // Parse categories dan ambil array yang unik (tidak duplikat)
       const parsedJenjangs = JSON.parse(req.body.jenjangs);
       // Filter hanya kategori yang valid (tidak terpecah menjadi karakter)
-      jenjangs = parsedJenjangs.filter(cat => 
-        ['SD', 'SMP', 'SMA', 'SMK', 'Mahasiswa', 'Umum'].includes(cat)
+      jenjangs = parsedJenjangs.filter((cat) =>
+        ["SD", "SMP", "SMA", "SMK", "Mahasiswa", "Umum"].includes(cat)
       );
     } catch (parseError) {
       console.error("Error parsing categories:", parseError);
       return res.status(400).json({
         success: false,
         message: "Format kategori tidak valid",
-        error: parseError.message
+        error: parseError.message,
       });
     }
 
@@ -269,20 +287,33 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
       categories: categories, // Menggunakan categories yang sudah difilter
       jenjangs: jenjangs, // Menggunakan jenjangs yang sudah difilter
       pelaksanaan: new Date(req.body.pelaksanaan),
-      link: req.body.link || '',
-      status: req.body.status
+      link: req.body.link || "",
+      status: req.body.status,
     };
+
+    if (req.file) {
+      updateData.image = `/uploads/posts/${req.file.filename}`;
+
+      // Optional: Hapus foto lama
+      const oldPost = await Post.findOne({ id: req.params.id });
+      if (oldPost.image) {
+        const oldImagePath = path.join(__dirname, "..", oldPost.image);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+    }
 
     const updatedPost = await Post.findOneAndUpdate(
       { id: req.params.id },
       updateData,
-      { new: true, runValidators: true }
+      { new: true }
     );
 
     if (!updatedPost) {
       return res.status(404).json({
         success: false,
-        message: "Post tidak ditemukan"
+        message: "Post tidak ditemukan",
       });
     }
 
@@ -292,21 +323,20 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
     // Gabungkan data post dengan data creator
     const postWithCreator = {
       ...updatedPost.toObject(),
-      creator: creator ? { id: creator.id, name: creator.name } : null
+      creator: creator ? { id: creator.id, name: creator.name } : null,
     };
 
     res.status(200).json({
       success: true,
       message: "Post berhasil diperbarui",
-      data: postWithCreator
+      data: postWithCreator,
     });
-
   } catch (error) {
     console.error("Error updating post:", error);
     res.status(500).json({
       success: false,
       message: "Terjadi kesalahan saat memperbarui post",
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -350,10 +380,10 @@ router.delete("/:id", verifyToken, async (req, res) => {
 router.post("/:postId/follow", verifyToken, async (req, res) => {
   try {
     // Pastikan hanya pendaftar yang bisa follow
-    if (req.user.role !== 'pendaftar') {
-      return res.status(403).json({ 
+    if (req.user.role !== "pendaftar") {
+      return res.status(403).json({
         success: false,
-        message: "Hanya pendaftar yang dapat mengikuti lomba" 
+        message: "Hanya pendaftar yang dapat mengikuti lomba",
       });
     }
 
@@ -362,17 +392,17 @@ router.post("/:postId/follow", verifyToken, async (req, res) => {
     const post = await Post.findOne({ id: req.params.postId });
 
     if (!user || !post) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "User atau Post tidak ditemukan" 
+        message: "User atau Post tidak ditemukan",
       });
     }
 
     // Cek apakah sudah follow
     if (post.followers.includes(req.user.id)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Anda sudah mengikuti lomba ini" 
+        message: "Anda sudah mengikuti lomba ini",
       });
     }
 
@@ -384,22 +414,22 @@ router.post("/:postId/follow", verifyToken, async (req, res) => {
     const notification = new Notification({
       userId: post.creator, // ID penyelenggara
       postId: post.id,
-      message: `${user.name} mengikuti lomba ${post.title}`, 
-      type: 'follow',
-      isRead: false // Pastikan notifikasi baru belum dibaca
+      message: `${user.name} mengikuti lomba ${post.title}`,
+      type: "follow",
+      isRead: false, // Pastikan notifikasi baru belum dibaca
     });
     await notification.save();
 
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
-      message: "Berhasil mengikuti lomba" 
+      message: "Berhasil mengikuti lomba",
     });
   } catch (error) {
     console.error("Error following post:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Gagal mengikuti lomba",
-      error: error.message 
+      error: error.message,
     });
   }
 });
@@ -408,79 +438,84 @@ router.post("/:postId/follow", verifyToken, async (req, res) => {
 router.post("/:postId/unfollow", verifyToken, async (req, res) => {
   try {
     // Pastikan hanya pendaftar yang bisa unfollow
-    if (req.user.role !== 'pendaftar') {
-      return res.status(403).json({ 
+    if (req.user.role !== "pendaftar") {
+      return res.status(403).json({
         success: false,
-        message: "Hanya pendaftar yang dapat berhenti mengikuti lomba" 
+        message: "Hanya pendaftar yang dapat berhenti mengikuti lomba",
       });
     }
 
     const post = await Post.findOne({ id: req.params.postId });
     if (!post) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Post tidak ditemukan" 
+        message: "Post tidak ditemukan",
       });
     }
 
     // Hapus follower
-    post.followers = post.followers.filter(followerId => followerId !== req.user.id);
+    post.followers = post.followers.filter(
+      (followerId) => followerId !== req.user.id
+    );
     await post.save();
 
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
-      message: "Berhasil berhenti mengikuti lomba" 
+      message: "Berhasil berhenti mengikuti lomba",
     });
   } catch (error) {
     console.error("Error unfollowing post:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Gagal berhenti mengikuti lomba",
-      error: error.message 
+      error: error.message,
     });
   }
 });
 
 // Di postRoutes.js
-router.get('/check-status-manually', async (req, res) => {
+router.get("/check-status-manually", async (req, res) => {
   try {
     const now = new Date();
-    console.log('Current date:', now);
+    console.log("Current date:", now);
 
     // Cari post yang seharusnya diupdate
     const postsToUpdate = await Post.find({
       pelaksanaan: { $lte: now },
-      status: 'Belum Dilaksanakan'
+      status: "Belum Dilaksanakan",
     });
 
-    console.log('Posts to update:', postsToUpdate.map(post => ({
-      id: post.id,
-      title: post.title,
-      pelaksanaan: post.pelaksanaan,
-      status: post.status
-    })));
+    console.log(
+      "Posts to update:",
+      postsToUpdate.map((post) => ({
+        id: post.id,
+        title: post.title,
+        pelaksanaan: post.pelaksanaan,
+        status: post.status,
+      }))
+    );
 
     // Lakukan update manual
     const updateResult = await Post.updateMany(
       {
         pelaksanaan: { $lte: now },
-        status: 'Belum Dilaksanakan'
+        status: "Belum Dilaksanakan",
       },
-      { $set: { status: 'Sedang Dilaksanakan' } }
+      { $set: { status: "Sedang Dilaksanakan" } }
     );
 
     res.json({
-      message: 'Status check completed',
+      message: "Status check completed",
       currentDate: now,
       matchedCount: updateResult.matchedCount,
       modifiedCount: updateResult.modifiedCount,
-      postsToUpdate: postsToUpdate
+      postsToUpdate: postsToUpdate,
     });
   } catch (error) {
-    console.error('Error in manual status check:', error);
-    res.status(500).json({ 
-      message: 'Error checking status', 
-      error: error.message 
+    console.error("Error in manual status check:", error);
+    res.status(500).json({
+      message: "Error checking status",
+      error: error.message,
     });
   }
 });
@@ -490,37 +525,37 @@ router.get("/:postId/followers", verifyToken, async (req, res) => {
   try {
     // Pastikan hanya penyelenggara yang membuat post bisa melihat followers
     const post = await Post.findOne({ id: req.params.postId });
-    
+
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: "Post tidak ditemukan"
+        message: "Post tidak ditemukan",
       });
     }
 
     // Cek apakah user yang request adalah pembuat post
-    if (post.creator !== req.user.id && req.user.role !== 'admin') {
+    if (post.creator !== req.user.id && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
-        message: "Anda tidak memiliki izin"
+        message: "Anda tidak memiliki izin",
       });
     }
 
     // Ambil detail followers
-    const followers = await User.find({ 
-      id: { $in: post.followers } 
-    }).select('id name email nomor');
+    const followers = await User.find({
+      id: { $in: post.followers },
+    }).select("id name email nomor");
 
     res.status(200).json({
       success: true,
-      data: followers
+      data: followers,
     });
   } catch (error) {
     console.error("Error fetching followers:", error);
     res.status(500).json({
       success: false,
       message: "Gagal mengambil daftar peserta",
-      error: error.message
+      error: error.message,
     });
   }
 });

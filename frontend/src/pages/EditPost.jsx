@@ -143,6 +143,7 @@ const EditPost = () => {
     formData.append("categories", JSON.stringify(post.categories));
     formData.append("jenjangs", JSON.stringify(post.jenjangs));
     formData.append("pelaksanaan", post.pelaksanaan);
+    formData.append("link", post.link);
     formData.append("status", post.status);
     if (post.image instanceof File) {
       formData.append("image", post.image);
@@ -207,6 +208,23 @@ const EditPost = () => {
               id="description"
               name="description"
               value={post.description}
+              onChange={handleChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              rows="4"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="link"
+            >
+              Link
+            </label>
+            <textarea
+              id="link"
+              name="link"
+              value={post.link}
               onChange={handleChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               rows="4"

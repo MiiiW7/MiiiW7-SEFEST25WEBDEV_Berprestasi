@@ -30,6 +30,7 @@ const DetailPost = () => {
 
         if (response.data.success) {
           setPost(response.data.data);
+          console.log("Post details:", response.data.data);
 
           // If user is logged in, check if they're following this post
           if (user && token) {
@@ -202,6 +203,8 @@ const handleFollow = async () => {
               <div>
                 <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
                 <p className="text-gray-700 mb-4">{post.description}</p>
+                <a className="text-gray-700 mt-4">Link Pendaftaran : </a>
+                <a href={post.link} target="_blank" className="text-gray-700 mb-4 hover:text-blue-400">{post.link}</a>
               </div>
               <div className="mt-auto">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 my-4 py-auto">

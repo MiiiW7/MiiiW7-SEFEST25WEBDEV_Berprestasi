@@ -1,65 +1,81 @@
 // routes/userRoutes.js
 import express from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import Post from "../models/post.js";
 import Notification from "../models/notification.js";
 import { User } from "../models/user.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { verifyToken } from "../middleware/auth.js";
+import { uploadProfile } from "../multer.js";
 
 const router = express.Router();
 
 // AUTH ROUTES
 // Register User
-router.post("/auth/register", async (req, res) => {
-  try {
-    const { name, email, password, nomor, role } = req.body;
+router.post(
+  "/auth/register",
+  uploadProfile.single("profilePicture"),
+  async (req, res) => {
+    try {
+      const { name, email, password, nomor, role } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        // Hapus file yang baru diupload jika user sudah ada
+        if (req.file) {
+          const filePath = path.join(__dirname, "..", req.file.path);
+          fs.unlinkSync(filePath);
+        }
+        return res.status(400).json({
+          success: false,
+          message: "Email sudah terdaftar",
+        });
+      }
+
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Siapkan data profile picture
+      const profilePicturePath = req.file
+        ? `/uploads/profiles/${req.file.filename}`
+        : "";
+
+      // Create new user
+      const user = new User({
+        name,
+        email,
+        password: hashedPassword,
+        nomor,
+        role: role || "pendaftar",
+        profilePicture: profilePicturePath,
+      });
+
+      // Save user
+      const savedUser = await user.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Registrasi berhasil",
+        data: {
+          id: savedUser.id,
+          name: savedUser.name,
+          email: savedUser.email,
+          nomor: savedUser.nomor,
+          role: savedUser.role,
+          profilePicture: savedUser.profilePicture,
+        },
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({
         success: false,
-        message: "Email sudah terdaftar",
+        message: "Terjadi kesalahan saat registrasi",
+        error: error.message,
       });
     }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      nomor,
-      role: role || "pendaftar",
-    });
-
-    // Save user
-    const savedUser = await user.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Registrasi berhasil",
-      data: {
-        id: savedUser.id,
-        name: savedUser.name,
-        email: savedUser.email,
-        nomor: savedUser.nomor,
-        role: savedUser.role,
-      },
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Terjadi kesalahan saat registrasi",
-      error: error.message,
-    });
   }
-});
+);
 
 // Login User
 router.post("/auth/login", async (req, res) => {
@@ -86,11 +102,11 @@ router.post("/auth/login", async (req, res) => {
 
     // Generate JWT token dengan informasi lengkap
     const token = jwt.sign(
-      { 
-        id: user.id, 
+      {
+        id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
@@ -173,29 +189,59 @@ router.get("/profile", verifyToken, async (req, res) => {
 });
 
 // Update User Profile
-router.put("/profile", verifyToken, async (req, res) => {
-  try {
-    const { name, email, nomor } = req.body;
+router.put(
+  "/profile",
+  verifyToken,
+  uploadProfile.single("profilePicture"),
+  async (req, res) => {
+    try {
+      // Cari user yang akan diupdate
+      const user = await User.findOne({ id: req.user.id });
 
-    const updatedUser = await User.findOneAndUpdate(
-      { id: req.user.id },
-      { name, email, nomor },
-      { new: true }
-    ).select("-password");
+      // Siapkan data update
+      const updateData = {
+        name: req.body.name,
+        email: req.body.email,
+        nomor: req.body.nomor,
+      };
 
-    res.status(200).json({
-      success: true,
-      message: "Profil berhasil diperbarui",
-      data: updatedUser,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Gagal memperbarui profil",
-      error: error.message,
-    });
+      // Jika ada file baru diunggah
+      if (req.file) {
+        // Hapus foto profil lama jika ada (kecuali default)
+        if (user.profilePicture && 
+            user.profilePicture !== '/uploads/profiles/default-avatar.png') {
+          const oldImagePath = path.join(__dirname, "..", user.profilePicture);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+
+        // Set path foto profil baru
+        updateData.profilePicture = `/uploads/profiles/${req.file.filename}`;
+      }
+
+      // Lakukan update
+      const updatedUser = await User.findOneAndUpdate(
+        { id: req.user.id },
+        updateData,
+        { new: true }
+      ).select("-password");
+
+      res.status(200).json({
+        success: true,
+        message: "Profil berhasil diperbarui",
+        data: updatedUser,
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal memperbarui profil",
+        error: error.message,
+      });
+    }
   }
-});
+);
 
 // Change Password
 router.put("/change-password", verifyToken, async (req, res) => {
@@ -264,41 +310,43 @@ router.get("/followed-posts", verifyToken, async (req, res) => {
 // Mendapatkan semua notifikasi
 router.get("/notifications", verifyToken, async (req, res) => {
   try {
-    const notifications = await Notification.find({ 
-      userId: req.user.id 
+    const notifications = await Notification.find({
+      userId: req.user.id,
     }).sort({ createdAt: -1 });
 
     const populatedNotifications = await Promise.all(
       notifications.map(async (notification) => {
         const post = await Post.findOne({ id: notification.postId });
-        
+
         return {
           _id: notification._id,
           message: notification.message,
-          postId: post ? {
-            id: post.id,
-            title: post.title
-          } : null,
+          postId: post
+            ? {
+                id: post.id,
+                title: post.title,
+              }
+            : null,
           isRead: notification.isRead,
-          createdAt: notification.createdAt
+          createdAt: notification.createdAt,
         };
       })
     );
 
     // Hitung jumlah notifikasi yang belum dibaca
-    const unreadCount = populatedNotifications.filter(n => !n.isRead).length;
+    const unreadCount = populatedNotifications.filter((n) => !n.isRead).length;
 
     res.status(200).json({
       success: true,
       data: populatedNotifications,
-      unreadCount: unreadCount
+      unreadCount: unreadCount,
     });
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).json({
       success: false,
       message: "Gagal mengambil notifikasi",
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -307,25 +355,25 @@ router.get("/notifications", verifyToken, async (req, res) => {
 router.put("/notifications/mark-all-read", verifyToken, async (req, res) => {
   try {
     await Notification.updateMany(
-      { 
-        userId: req.user.id, 
-        isRead: false 
-      }, 
-      { 
-        isRead: true 
+      {
+        userId: req.user.id,
+        isRead: false,
+      },
+      {
+        isRead: true,
       }
     );
 
     res.status(200).json({
       success: true,
-      message: "Semua notifikasi telah ditandai sebagai dibaca"
+      message: "Semua notifikasi telah ditandai sebagai dibaca",
     });
   } catch (error) {
     console.error("Error marking notifications as read:", error);
     res.status(500).json({
       success: false,
       message: "Gagal menandai notifikasi",
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -335,26 +383,26 @@ router.delete("/notifications/:id", verifyToken, async (req, res) => {
   try {
     const notification = await Notification.findOneAndDelete({
       id: req.params.id,
-      userId: req.user.id
+      userId: req.user.id,
     });
 
     if (!notification) {
       return res.status(404).json({
         success: false,
-        message: "Notifikasi tidak ditemukan"
+        message: "Notifikasi tidak ditemukan",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Notifikasi berhasil dihapus"
+      message: "Notifikasi berhasil dihapus",
     });
   } catch (error) {
     console.error("Error deleting notification:", error);
     res.status(500).json({
       success: false,
       message: "Gagal menghapus notifikasi",
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -363,44 +411,44 @@ router.delete("/notifications/:id", verifyToken, async (req, res) => {
 router.delete("/notifications", verifyToken, async (req, res) => {
   try {
     // Hapus semua notifikasi untuk user yang sedang login
-    const result = await Notification.deleteMany({ 
-      userId: req.user.id 
+    const result = await Notification.deleteMany({
+      userId: req.user.id,
     });
 
     res.status(200).json({
       success: true,
       message: "Semua notifikasi berhasil dihapus",
-      deletedCount: result.deletedCount
+      deletedCount: result.deletedCount,
     });
   } catch (error) {
     console.error("Error deleting all notifications:", error);
     res.status(500).json({
       success: false,
       message: "Gagal menghapus notifikasi",
-      error: error.message
+      error: error.message,
     });
   }
 });
 
 // Route untuk notifikasi penyelenggara
-router.get('/notifications/penyelenggara', verifyToken, async (req, res) => {
+router.get("/notifications/penyelenggara", verifyToken, async (req, res) => {
   try {
     // Pastikan hanya penyelenggara yang bisa mengakses
-    if (req.user.role !== 'penyelenggara') {
+    if (req.user.role !== "penyelenggara") {
       return res.status(403).json({
         success: false,
-        message: 'Akses ditolak'
+        message: "Akses ditolak",
       });
     }
 
     // Cari post milik penyelenggara
     const posts = await Post.find({ creator: req.user.id });
-    const postIds = posts.map(post => post.id);
+    const postIds = posts.map((post) => post.id);
 
     // Cari notifikasi yang terkait dengan post milik penyelenggara
     const notifications = await Notification.find({
-      type: 'follow',
-      postId: { $in: postIds }
+      type: "follow",
+      postId: { $in: postIds },
     }).sort({ createdAt: -1 });
 
     // Populate notifikasi dengan detail post dan user
@@ -416,116 +464,127 @@ router.get('/notifications/penyelenggara', verifyToken, async (req, res) => {
           post: {
             id: post.id,
             title: post.title,
-            image: post.image
+            image: post.image,
           },
           follower: {
             id: follower.id,
             name: follower.name,
-            email: follower.email
+            email: follower.email,
           },
-          createdAt: notification.createdAt
+          createdAt: notification.createdAt,
         };
       })
     );
 
     // Hitung jumlah notifikasi yang belum dibaca
-    const unreadCount = populatedNotifications.filter(n => !n.isRead).length;
+    const unreadCount = populatedNotifications.filter((n) => !n.isRead).length;
 
     res.status(200).json({
       success: true,
       data: populatedNotifications,
-      unreadCount: unreadCount
+      unreadCount: unreadCount,
     });
   } catch (error) {
-    console.error('Error fetching penyelenggara notifications:', error);
+    console.error("Error fetching penyelenggara notifications:", error);
     res.status(500).json({
       success: false,
-      message: 'Gagal mengambil notifikasi'
+      message: "Gagal mengambil notifikasi",
     });
   }
 });
 
-router.put('/notifications/penyelenggara/mark-all-read', verifyToken, async (req, res) => {
-  try {
-    // Pastikan hanya penyelenggara yang bisa mengakses
-    if (req.user.role !== 'penyelenggara') {
-      return res.status(403).json({
+router.put(
+  "/notifications/penyelenggara/mark-all-read",
+  verifyToken,
+  async (req, res) => {
+    try {
+      // Pastikan hanya penyelenggara yang bisa mengakses
+      if (req.user.role !== "penyelenggara") {
+        return res.status(403).json({
+          success: false,
+          message: "Akses ditolak",
+        });
+      }
+
+      // Cari post milik penyelenggara
+      const posts = await Post.find({ creator: req.user.id });
+      const postIds = posts.map((post) => post.id);
+
+      // Update semua notifikasi follow untuk post milik penyelenggara
+      await Notification.updateMany(
+        {
+          type: "follow",
+          postId: { $in: postIds },
+          isRead: false,
+        },
+        {
+          isRead: true,
+        }
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Semua notifikasi telah ditandai sebagai dibaca",
+      });
+    } catch (error) {
+      console.error(
+        "Error marking penyelenggara notifications as read:",
+        error
+      );
+      res.status(500).json({
         success: false,
-        message: 'Akses ditolak'
+        message: "Gagal menandai notifikasi",
+        error: error.message,
       });
     }
-
-    // Cari post milik penyelenggara
-    const posts = await Post.find({ creator: req.user.id });
-    const postIds = posts.map(post => post.id);
-
-    // Update semua notifikasi follow untuk post milik penyelenggara
-    await Notification.updateMany(
-      {
-        type: 'follow',
-        postId: { $in: postIds },
-        isRead: false
-      },
-      { 
-        isRead: true 
-      }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Semua notifikasi telah ditandai sebagai dibaca"
-    });
-  } catch (error) {
-    console.error("Error marking penyelenggara notifications as read:", error);
-    res.status(500).json({
-      success: false,
-      message: "Gagal menandai notifikasi",
-      error: error.message
-    });
   }
-});
+);
 
 // Route untuk menghapus notifikasi penyelenggara spesifik
-router.delete('/notifications/penyelenggara/:id', verifyToken, async (req, res) => {
-  try {
-    // Pastikan hanya penyelenggara yang bisa mengakses
-    if (req.user.role !== 'penyelenggara') {
-      return res.status(403).json({
+router.delete(
+  "/notifications/penyelenggara/:id",
+  verifyToken,
+  async (req, res) => {
+    try {
+      // Pastikan hanya penyelenggara yang bisa mengakses
+      if (req.user.role !== "penyelenggara") {
+        return res.status(403).json({
+          success: false,
+          message: "Akses ditolak",
+        });
+      }
+
+      // Cari post milik penyelenggara
+      const posts = await Post.find({ creator: req.user.id });
+      const postIds = posts.map((post) => post.id);
+
+      // Hapus notifikasi
+      const notification = await Notification.findOneAndDelete({
+        _id: req.params.id,
+        type: "follow",
+        postId: { $in: postIds },
+      });
+
+      if (!notification) {
+        return res.status(404).json({
+          success: false,
+          message: "Notifikasi tidak ditemukan",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Notifikasi berhasil dihapus",
+      });
+    } catch (error) {
+      console.error("Error deleting penyelenggara notification:", error);
+      res.status(500).json({
         success: false,
-        message: 'Akses ditolak'
+        message: "Gagal menghapus notifikasi",
+        error: error.message,
       });
     }
-
-    // Cari post milik penyelenggara
-    const posts = await Post.find({ creator: req.user.id });
-    const postIds = posts.map(post => post.id);
-
-    // Hapus notifikasi
-    const notification = await Notification.findOneAndDelete({
-      _id: req.params.id,
-      type: 'follow',
-      postId: { $in: postIds }
-    });
-
-    if (!notification) {
-      return res.status(404).json({
-        success: false,
-        message: 'Notifikasi tidak ditemukan'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Notifikasi berhasil dihapus'
-    });
-  } catch (error) {
-    console.error('Error deleting penyelenggara notification:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Gagal menghapus notifikasi',
-      error: error.message
-    });
   }
-});
+);
 
 export default router;

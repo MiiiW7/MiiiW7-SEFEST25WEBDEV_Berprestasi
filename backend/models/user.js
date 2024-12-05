@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    profilePicture: {
+      type: String,
+      require: false,
+      default: '' // Default bisa berupa path ke gambar default
+    },
     email: {
       type: String,
       required: true,

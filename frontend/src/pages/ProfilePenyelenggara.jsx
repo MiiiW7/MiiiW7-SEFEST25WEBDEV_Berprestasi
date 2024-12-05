@@ -6,10 +6,105 @@ import Navbar from "../components/navbar";
 import Footer from "../components/Footer";
 
 const ProfilePenyelenggara = () => {
-  const { user, token } = useAuth();
+  const { user, updateProfile, token } = useAuth();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    nomor: user?.nomor || '',
+  });
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validasi tipe dan ukuran file
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      const maxSize = 2 * 1024 * 1024; // 2MB
+
+      if (!allowedTypes.includes(file.type)) {
+        alert('Hanya file gambar (JPEG, PNG, GIF) yang diperbolehkan');
+        return;
+      }
+
+      if (file.size > maxSize) {
+        alert('Ukuran file maksimal 2MB');
+        return;
+      }
+
+      setProfilePicture(file);
+
+      // Preview image
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Buat FormData untuk mengirim data
+    const submitData = new FormData();
+    submitData.append('name', formData.name);
+    submitData.append('email', formData.email);
+    submitData.append('nomor', formData.nomor);
+    
+    // Tambahkan profile picture jika ada
+    if (profilePicture) {
+      submitData.append('profilePicture', profilePicture);
+    }
+
+    try {
+      const response = await axios.put(
+        'http://localhost:9000/user/profile', 
+        submitData, 
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+  
+      // Update profil di context atau state
+      updateProfile(response.data.data);
+      
+      // Reset state editing
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      // Tangani error
+    }
+  };
+
+  // Fungsi untuk mendapatkan URL gambar profil
+  const getProfilePictureUrl = () => {
+    // Jika ada preview image (baru diupload), gunakan preview
+    if (previewImage) return previewImage;
+    
+    // Jika ada foto profil dari user, gunakan URL backend
+    if (user?.profilePicture) {
+      return `http://localhost:9000${user.profilePicture}`;
+    }
+    
+    // Jika tidak ada, gunakan default
+    return '/default-avatar.png';
+  };
 
   const BACKEND_URL = "http://localhost:9000";
 
@@ -79,6 +174,41 @@ const ProfilePenyelenggara = () => {
         {/* Profile Section */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h1 className="text-2xl font-bold mb-4">Profile Penyelenggara</h1>
+          
+          {/* Foto Profil */}
+            <div className="relative">
+              <input 
+                type="file" 
+                id="profilePicture"
+                name="profilePicture"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+                disabled={!isEditing}
+              />
+              <label 
+                htmlFor={isEditing ? "profilePicture" : undefined} 
+                className={`cursor-${isEditing ? 'pointer' : 'default'}`}
+              >
+                <img 
+                  src={getProfilePictureUrl()} 
+                  alt="Foto Profil" 
+                  className={`w-32 h-32 rounded-full object-cover border-4 ${
+                    isEditing 
+                      ? 'border-yellow-500 hover:opacity-75' 
+                      : 'border-gray-300'
+                  }`}
+                />
+                {isEditing && (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <span className="text-white bg-black bg-opacity-50 px-2 py-1 rounded-md">
+                      Ubah Foto
+                    </span>
+                  </div>
+                )}
+              </label>
+            </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-gray-600">Nama:</p>
@@ -94,6 +224,75 @@ const ProfilePenyelenggara = () => {
             </div>
           </div>
         </div>
+
+        {isEditing ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-gray-700 mb-2">Nama</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2">Nomor Telepon</label>
+                <input
+                  type="tel"
+                  name="nomor"
+                  value={formData.nomor}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditing(false);
+                    // Reset preview dan foto yang dipilih
+                    setPreviewImage(null);
+                    setProfilePicture(null);
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 mb-4 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+                >
+                  Edit Profil
+                </button>
+              </div>
+            </div>
+          )}
 
         {/* Posts Section */}
         <div className="bg-white rounded-lg shadow-md p-6 ">

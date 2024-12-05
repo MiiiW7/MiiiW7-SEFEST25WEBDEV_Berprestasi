@@ -28,6 +28,7 @@ const CreatePost = () => {
     jenjangs: [],
     image: null,
     pelaksanaan: "",
+    link: "",
     status: "Belum Dilaksanakan",
   });
 
@@ -86,6 +87,7 @@ const CreatePost = () => {
       formDataToSend.append("categories", JSON.stringify(formData.categories));
       formDataToSend.append("jenjangs", JSON.stringify(formData.jenjangs));
       formDataToSend.append("pelaksanaan", formData.pelaksanaan);
+      formDataToSend.append("link", formData.link);
       formDataToSend.append("status", formData.status);
       if (formData.image) {
         formDataToSend.append("image", formData.image);
@@ -189,6 +191,21 @@ const CreatePost = () => {
               required
               rows="4"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Link Detail Lomba
+            </label>
+            <input
+              type="url"
+              name="link"
+              value={formData.link}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="https://example.com/detail-lomba"
             />
           </div>
 

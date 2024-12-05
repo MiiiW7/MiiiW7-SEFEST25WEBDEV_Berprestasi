@@ -10,10 +10,46 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     nomor: "",
+    profilePicture: null,
     role: "pendaftar", // default value
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validasi tipe dan ukuran file
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+      const maxSize = 2 * 1024 * 1024; // 2MB
+
+      if (!allowedTypes.includes(file.type)) {
+        setError("Hanya file gambar (JPEG, PNG, GIF) yang diperbolehkan");
+        return;
+      }
+
+      if (file.size > maxSize) {
+        setError("Ukuran file maksimal 2MB");
+        return;
+      }
+
+      setFormData((prevState) => ({
+        ...prevState,
+        profilePicture: file,
+      }));
+
+      // Preview image
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Reset error
+      setError(null);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -25,51 +61,61 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-  
+
     //Validasi form
-    if (!formData.name || !formData.email || !formData.password || !formData.nomor) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.nomor
+    ) {
       setError("Semua field harus diisi");
       return;
     }
-  
+
     // Validasi password length
     if (formData.password.length < 6) {
       setError("Password minimal 6 karakter");
       return;
     }
-  
+
     // Validasi password match
     if (formData.password !== formData.confirmPassword) {
       setError("Password tidak cocok");
       return;
     }
-  
+
     // Validasi format email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError("Format email tidak valid");
       return;
     }
-  
+
     setLoading(true);
-  
+
+    const submitData = new FormData();
+    submitData.append("name", formData.name);
+    submitData.append("email", formData.email);
+    submitData.append("password", formData.password);
+    submitData.append("nomor", formData.nomor);
+    submitData.append("role", formData.role);
+
+    // Tambahkan profile picture jika ada
+    if (formData.profilePicture) {
+      submitData.append("profilePicture", formData.profilePicture);
+    }
+
     try {
       const response = await axios.post(
-        "http://localhost:9000/user/auth/register",
-        {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          nomor: formData.nomor,
-          role: formData.role
-        },
+        "http://localhost:9000/user/auth/register", submitData,
         {
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
-  
+
       if (response.data.success) {
         console.log("Registration successful:", response.data);
         alert("Registrasi berhasil!");
@@ -79,7 +125,9 @@ const Register = () => {
       console.error("Registration error:", error);
       if (axios.isAxiosError(error)) {
         if (error.response) {
-          setError(error.response.data.message || "Terjadi kesalahan saat registrasi");
+          setError(
+            error.response.data.message || "Terjadi kesalahan saat registrasi"
+          );
         } else if (error.request) {
           setError("Tidak dapat terhubung ke server");
         }
@@ -209,6 +257,34 @@ const Register = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
               />
+            </div>
+
+            {/* Foto Profil */}
+            <div className="mb-4 flex flex-col items-center">
+              <input
+                type="file"
+                id="profilePicture"
+                name="profilePicture"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <label htmlFor="profilePicture" className="cursor-pointer">
+                {previewImage ? (
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-yellow-500"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-500">Pilih Foto</span>
+                  </div>
+                )}
+              </label>
+              <p className="text-xs text-gray-500 mt-2">
+                Maksimal 2MB (JPEG, PNG, GIF)
+              </p>
             </div>
 
             {/* Role */}
