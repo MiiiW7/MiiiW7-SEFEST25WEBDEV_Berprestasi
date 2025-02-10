@@ -5,7 +5,7 @@ Proyek ini adalah bagian dari SEFEST 25 yang berfokus pada pengembangan web. Rep
 
 ## Bahasa Pemrograman
 - JavaScript (express)
-- Vite ReactJS
+- ReactJS (vite)
 
 ## Fitur
 - Post berdasarkan kategori dan jenjang
