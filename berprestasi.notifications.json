@@ -1,0 +1,221 @@
+[{
+  "_id": {
+    "$oid": "674eb954bb5a05c06fe1735b"
+  },
+  "userId": "U84914N",
+  "postId": "P1410M1",
+  "message": "Lomba Tes #1 akan dilaksanakan besok!",
+  "type": "upcoming",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-03T07:55:00.915Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T14:31:42.355Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674eb954bb5a05c06fe17362"
+  },
+  "userId": "U84914N",
+  "postId": "P1410M1",
+  "message": "Lomba Tes #1 dimulai hari ini!",
+  "type": "today",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-03T07:55:00.931Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T14:31:42.355Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674ec5c04dcae505e6ffb0e3"
+  },
+  "userId": "U10266G",
+  "postId": "P1410M1",
+  "message": "Lomba Tes #1 akan dilaksanakan besok!",
+  "type": "upcoming",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-03T08:48:00.129Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-03T13:40:35.783Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674ec5c04dcae505e6ffb0e8"
+  },
+  "userId": "U10266G",
+  "postId": "P1410M1",
+  "message": "Lomba Tes #1 dimulai hari ini!",
+  "type": "today",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-03T08:48:00.157Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-03T13:40:35.783Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674f9c3435d67f23fe8a6e61"
+  },
+  "userId": "U84914N",
+  "postId": "P0755EL",
+  "message": "Lomba Tes 2 akan dilaksanakan besok!",
+  "type": "upcoming",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-04T00:03:00.703Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T14:31:42.355Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674f9c3435d67f23fe8a6e64"
+  },
+  "userId": "U10266G",
+  "postId": "P0755EL",
+  "message": "Lomba Tes 2 akan dilaksanakan besok!",
+  "type": "upcoming",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-04T00:03:00.720Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T00:36:35.420Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674f9c3435d67f23fe8a6e68"
+  },
+  "userId": "U84914N",
+  "postId": "P0755EL",
+  "message": "Lomba Tes 2 dimulai hari ini!",
+  "type": "today",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-04T00:03:00.734Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T14:31:42.355Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674f9c3435d67f23fe8a6e6b"
+  },
+  "userId": "U10266G",
+  "postId": "P0755EL",
+  "message": "Lomba Tes 2 dimulai hari ini!",
+  "type": "today",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-04T00:03:00.742Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T00:36:35.420Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6750182c5e56c0f334e20e7d"
+  },
+  "userId": "U5305MY",
+  "postId": "P86195Y",
+  "message": "Mulki mengikuti lomba Tes Link",
+  "type": "follow",
+  "isRead": true,
+  "createdAt": {
+    "$date": "2024-12-04T08:51:56.622Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T08:52:01.699Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "675018305e56c0f334e20eb6"
+  },
+  "userId": "U10266G",
+  "postId": "P86195Y",
+  "message": "Lomba Tes Link akan dilaksanakan besok!",
+  "type": "upcoming",
+  "isRead": false,
+  "createdAt": {
+    "$date": "2024-12-04T08:52:00.985Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T08:52:00.985Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "675018305e56c0f334e20eba"
+  },
+  "userId": "U10266G",
+  "postId": "P86195Y",
+  "message": "Lomba Tes Link dimulai hari ini!",
+  "type": "today",
+  "isRead": false,
+  "createdAt": {
+    "$date": "2024-12-04T08:52:00.996Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T08:52:00.996Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6789f3824f2656a5f16b6d01"
+  },
+  "userId": "U5305MY",
+  "postId": "P5005J4",
+  "message": "Fadlan mengikuti lomba Olimpiade Pelajar Nasional",
+  "type": "follow",
+  "isRead": false,
+  "createdAt": {
+    "$date": "2025-01-17T06:06:58.641Z"
+  },
+  "updatedAt": {
+    "$date": "2025-01-17T06:06:58.641Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67a4721489185ee11ba840d0"
+  },
+  "userId": "U3503YZ",
+  "postId": "P5843AK",
+  "message": "Fadlan mengikuti lomba Olimpiade Sains Nasional ",
+  "type": "follow",
+  "isRead": false,
+  "createdAt": {
+    "$date": "2025-02-06T08:25:56.872Z"
+  },
+  "updatedAt": {
+    "$date": "2025-02-06T08:25:56.872Z"
+  },
+  "__v": 0
+}]

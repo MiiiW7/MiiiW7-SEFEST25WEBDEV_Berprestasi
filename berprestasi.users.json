@@ -1,0 +1,112 @@
+[{
+  "_id": {
+    "$oid": "6723906795bb64c490b57edc"
+  },
+  "name": "SMK NEGERI 1 CIMAHI",
+  "email": "miiiwhmf@gmail.com",
+  "password": "$2b$10$bb//SFZ50QKanSiYEMs6F.c8Q1hwUUoSE/jFEeJ0AobwFJRY7UA4C",
+  "nomor": "08123123123",
+  "role": "penyelenggara",
+  "createdAt": {
+    "$date": "2024-10-31T14:12:55.304Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-06T01:52:28.367Z"
+  },
+  "id": "U5305MY",
+  "__v": 0,
+  "profilePicture": "/uploads/profiles/profile-U5305MY-1733449948323.png"
+},
+{
+  "_id": {
+    "$oid": "6723907e95bb64c490b57eee"
+  },
+  "name": "Fadlan",
+  "email": "mhilmifadlan@gmail.com",
+  "password": "$2b$10$L8JtSAVPV9fRlbAK51SMgepsr9OetzM9o6jWjuZKZYep846zYfX8S",
+  "nomor": "083213212",
+  "role": "pendaftar",
+  "createdAt": {
+    "$date": "2024-10-31T14:13:18.491Z"
+  },
+  "updatedAt": {
+    "$date": "2024-11-28T01:33:06.703Z"
+  },
+  "id": "U84914N",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674bd947e0c556acfe5e3187"
+  },
+  "name": "Mulki",
+  "email": "joshiriya355@mumbama.com",
+  "password": "$2b$10$OrBXgKzGjlM4hZJv2z4XHup0vsheYVRc1IRSZ7sE5g0/x7AQOtXwa",
+  "nomor": "0832132132",
+  "role": "pendaftar",
+  "createdAt": {
+    "$date": "2024-12-01T03:34:31.026Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T13:00:51.553Z"
+  },
+  "id": "U10266G",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67505915c7a52d5b123b13ad"
+  },
+  "name": "Miiiw",
+  "profilePicture": "/uploads/profiles/profile-temp-1733318933621.jpg",
+  "email": "mi@gmail.com",
+  "password": "$2b$10$MMzfOSZNF6ay8/ZQCHi8t.psVlQcLVY5/GW0EDoTKVG.TGHR7zQqS",
+  "nomor": "08123123",
+  "role": "penyelenggara",
+  "createdAt": {
+    "$date": "2024-12-04T13:28:53.700Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-04T13:28:53.700Z"
+  },
+  "id": "U370091",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6751b0431c309da0b4ff794a"
+  },
+  "name": "Fadlan",
+  "profilePicture": "/uploads/profiles/profile-temp-1733406787234.png",
+  "email": "hilmi.muhammad1886@smk.belajar.id",
+  "password": "$2b$10$VWkQXiVFS6bIe4OyFEq9veQEnYzy0tsnWyl/n7L2w9gp4Ja87S4YC",
+  "nomor": "08321321123",
+  "role": "penyelenggara",
+  "createdAt": {
+    "$date": "2024-12-05T13:53:07.372Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-05T14:59:34.098Z"
+  },
+  "id": "U7372A1",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6752942dd1ff3883661fcfa4"
+  },
+  "name": "ITB",
+  "profilePicture": "/uploads/profiles/profile-U3503YZ-1733466651810.png",
+  "email": "mhmmdmulki05@gmail.com",
+  "password": "$2b$10$W4jB/oDqd7aVPsT5/y.0NuPMRh/EzXMAUIjJkfzqPc5JbYjbw8RJK",
+  "nomor": "08123123",
+  "role": "penyelenggara",
+  "createdAt": {
+    "$date": "2024-12-06T06:05:33.503Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-06T06:30:51.833Z"
+  },
+  "id": "U3503YZ",
+  "__v": 0
+}]
