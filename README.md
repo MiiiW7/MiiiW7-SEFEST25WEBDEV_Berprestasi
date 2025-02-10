@@ -1,7 +1,7 @@
 # MiiiW7-SEFEST25WEBDEV_Berprestasi
 
 ## Deskripsi
-Proyek ini adalah bagian dari SEFEST 25 yang berfokus pada pengembangan web. Repositori ini berisi kode sumber untuk aplikasi web yang berprestasi.
+Proyek ini adalah bagian dari SEFEST 25 yang berfokus pada pengembangan web. Repositori ini berisi kode sumber untuk aplikasi web tim berprestasi.
 
 ## Bahasa Pemrograman
 - JavaScript (express)
