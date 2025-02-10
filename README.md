@@ -18,3 +18,6 @@ Proyek ini adalah bagian dari SEFEST 25 yang berfokus pada pengembangan web. Rep
    git clone https://github.com/MiiiW7/MiiiW7-SEFEST25WEBDEV_Berprestasi.git
 2. cd MiiiW7-SEFEST25WEBDEV_Berprestasi
 3. npm install
+
+## Note
+Web ini menggunakan mongodb compass local, gambar yang diupload juga akan tersimpan dalah server local, dan path file nya saja yang tercatat dalam mongodb
